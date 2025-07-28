@@ -3,6 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\CocktailsController;
+use App\Http\Controllers\IngredientsController;
+
+Route::resource('ingredients',IngredientsController::class);
+Route::get('/', function () {
+    return Inertia::render('welcome');
+})->name('home');
 
 Route::resource('cocktails',CocktailsController::class);
 Route::get('/', function () {
