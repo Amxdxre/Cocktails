@@ -47,7 +47,7 @@ class CocktailsController extends Controller
 
         $cocktail->save();
 
-        return redirect()->route('cocktails.index')->with('success', 'CockTail успешно добавлен, петушок');
+        return redirect()->route('cocktails.index')->with('success', 'Коктейль успешно добавлен');
     }
 
     /**
@@ -90,7 +90,7 @@ class CocktailsController extends Controller
 
         $cocktail->save();
 
-        return redirect()->route('cocktails.index')->with('success', 'CockTail успешно обновлён, петушок');
+        return redirect()->route('cocktails.index')->with('success', 'Коктейль успешно обновлён');
     }
 
     /**
@@ -103,6 +103,6 @@ class CocktailsController extends Controller
         }
         $cocktail->delete();
 
-        return redirect()->route('cocktails.index')->with('success', 'CockTail успешно УДАЛЁН, петушок');
+        return redirect()->route('cocktails.index')->with('success', 'Коктейль успешно удалён');
     }
 }
