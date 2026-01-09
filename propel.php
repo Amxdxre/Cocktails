@@ -2,6 +2,11 @@
 
 return [
     'propel' => [
+        'paths' => [
+            'phpDir' => __DIR__ . '/generated-classes',
+            'sqlDir' => __DIR__ . '/generated-sql',
+            'schemaDir' => __DIR__ . '/db',
+        ],
         'database' => [
             'connections' => [
                 'cocktails' => [
@@ -14,6 +19,14 @@ return [
                     ]
                 ]
             ]
+        ],
+        'generator' => [
+            'defaultConnection' => 'cocktails',
+            'connections'       => ['cocktails'],
+        ],
+        'runtime' => [
+            'defaultConnection' => 'cocktails',
+            'connections'       => ['cocktails'],
         ]
     ]
 ];
