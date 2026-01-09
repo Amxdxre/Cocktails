@@ -6,6 +6,7 @@
     "s-mcdonald/phpjson": "2.1.0"
   },
   "autoload": {
+    "classmap": ["generated-classes/"],
     "psr-4": {
       "Cocktails\\": "src/"
     }
