@@ -6,10 +6,28 @@ use Cocktails\Entities\Ingredient;
 use Ingredients;
 use IngredientsQuery;
 use SamMcDonald\Json\Json;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 class IngredientController
 {
-    public function getAll()
+    public int $size = 20;
+    public function renderPage()
+    {
+        $loader = new FilesystemLoader('templates');
+        $twig = new Environment($loader, [
+            'cache' => 'cache',
+            'debug' => true
+        ]);
+        $ingredients = $this->getList();
+        $template = $twig->load('ingredients.twig');
+        echo $template->render([
+            'ingredients' => $ingredients,
+            'size' => $this->size
+        ]);
+    }
+
+    public function getList()
     {
         $ingredients = [];
         $collection = IngredientsQuery::create()->find();

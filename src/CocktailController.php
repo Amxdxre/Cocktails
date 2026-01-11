@@ -5,10 +5,29 @@ use Cocktails;
 use Cocktails\Entities\Cocktail;
 use CocktailsQuery;
 use SamMcDonald\Json\Json;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 class CocktailController
 {
-    public function getAll()
+    public int $size = 20;
+
+    public function renderPage()
+    {
+        $loader = new FilesystemLoader('templates');
+        $twig = new Environment($loader, [
+            'cache' => 'cache',
+            'debug' => true
+        ]);
+        $cocktails = $this->getList();
+        $template = $twig->load('cocktails.twig');
+        echo $template->render([
+            'cocktails' => $cocktails,
+            'size' => $this->size
+        ]);
+    }
+
+    public function getList()
     {
         $cocktails = [];
         $collection = CocktailsQuery::create()->find();
@@ -19,7 +38,7 @@ class CocktailController
             $cocktail->description = $item->getDescription();
             $cocktails[] = $cocktail;
         }
-        echo json_encode($cocktails);
+        return $cocktails;
     }
     public function get($id)
     {
