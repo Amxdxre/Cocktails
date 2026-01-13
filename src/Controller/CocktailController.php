@@ -8,7 +8,7 @@ use SamMcDonald\Json\Json;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
-class CocktailController
+class CocktailController implements Provider
 {
     public int $size = 20;
 
