@@ -70,6 +70,7 @@ class CocktailController implements Provider
         if ($selectedCocktail->getId() === $entity->id) {
             $selectedCocktail->setName($entity->name);
             $selectedCocktail->setDescription($entity->description);
+            $selectedCocktail->save();
         }
         $cocktail = new Cocktail();
         $cocktail->id = $selectedCocktail->getId();
