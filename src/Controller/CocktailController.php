@@ -1,8 +1,9 @@
 <?php
 
-namespace Cocktails;
+namespace Cocktails\Controller;
 use Cocktails;
 use Cocktails\Entities\Cocktail;
+use Cocktails\Interfaces\Provider;
 use CocktailsQuery;
 use SamMcDonald\Json\Json;
 use Twig\Environment;
@@ -50,28 +51,25 @@ class CocktailController implements Provider
         $cocktail->description = $cocktailDB->getDescription();
         echo Json::serialize($cocktail);
     }
-    public function post($data)
+    public function post($entity)
     {
-        /** @var Cocktail $cocktailData */
-        $cocktailData = Json::deserialize($data, Cocktail::class);
         $cocktails = new Cocktails();
-        $cocktails->setName($cocktailData->name);
-        $cocktails->setDescription($cocktailData->description);
-        $cocktails->save();
+        $cocktails->setName($entity->name);
+        $cocktails->setDescription($entity->description);
+        $id = $cocktails->save();
         $cocktail = new Cocktail();
+        $cocktail->id = $id;
         $cocktail->name = $cocktails->getName();
         $cocktail->description = $cocktails->getDescription();
         echo Json::serialize($cocktail);
     }
-    public function update($data)
+    public function update($entity)
     {
-        /** @var Cocktail $cocktailData */
-        $cocktailData = Json::deserialize($data, Cocktail::class);
         $query = new CocktailsQuery();
-        $selectedCocktail = $query->findPk($cocktailData->id);
-        if ($selectedCocktail->getId() === $cocktailData->id) {
-            $selectedCocktail->setName($cocktailData->name);
-            $selectedCocktail->setDescription($cocktailData->description);
+        $selectedCocktail = $query->findPk($entity->id);
+        if ($selectedCocktail->getId() === $entity->id) {
+            $selectedCocktail->setName($entity->name);
+            $selectedCocktail->setDescription($entity->description);
         }
         $cocktail = new Cocktail();
         $cocktail->id = $selectedCocktail->getId();
@@ -84,4 +82,10 @@ class CocktailController implements Provider
     {
         CocktailsQuery::create()->filterById($id)->delete();
     }
+
+    public function getAssociatedEntity()
+    {
+        return Cocktail::class;
+    }
+
 }
