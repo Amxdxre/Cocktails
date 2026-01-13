@@ -22,6 +22,12 @@ class API
         $this->registerControllers();
     }
 
+    public function processGet($controller, $id)
+    {
+        $provider = $this->getProvider($controller);
+        $provider->get($id);
+    }
+
     public function processPost($controller, $data)
     {
         list($entity, $provider) = $this->prepareRequestProcessing($controller, $data);
