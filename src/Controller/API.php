@@ -30,7 +30,13 @@ class API
 
     public function processUpdate($controller, $data)
     {
-
+        list($entity, $provider) = $this->prepareRequestProcessing($controller, $data);
+        $provider->update($entity);
+    }
+    public function processDelete($controller, $id)
+    {
+        $provider = $this->getProvider($controller);
+        $provider->delete($id);
     }
 
     /**
