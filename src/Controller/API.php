@@ -12,7 +12,7 @@ class API
     public function registerControllers()
     {
         $this->registredProviders = [
-            'ingredient' => Ingredient::class,
+            'ingredient' => IngredientController::class,
             'cocktail' => CocktailController::class
         ];
     }
