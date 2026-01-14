@@ -2,15 +2,18 @@
 
 use Cocktails\Controller\API;
 use Cocktails\Controller\CocktailController;
-use Cocktails\Controller\Ingredient;
+use Cocktails\Controller\IngredientController;
 
 include "vendor/autoload.php";
 include "generated-conf/config.php";
 
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $route) {
     $route->addRoute('GET', '/cocktails', [CocktailController::class, 'renderPage']);
-    $route->addRoute('GET', '/ingredients', [Ingredient::class, 'renderPage']);
+    $route->addRoute('GET', '/ingredients', [IngredientController::class, 'renderPage']);
+    $route->addRoute('GET', '/api/{controller}', [API::class, 'processGet']);
     $route->addRoute('POST', '/api/{controller}', [API::class, 'processPost']);
+    $route->addRoute('PATCH', '/api/{controller}', [API::class, 'processUpdate']);
+    $route->addRoute('DELETE', '/api/{controller}', [API::class, 'processDelete']);
 });
 
 $httpMethod = $_SERVER['REQUEST_METHOD'];
