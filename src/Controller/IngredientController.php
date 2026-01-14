@@ -1,15 +1,16 @@
 <?php
 
-namespace Cocktails;
+namespace Cocktails\Controller;
 
 use Cocktails\Entities\Ingredient;
+use Cocktails\Interfaces\Provider;
 use Ingredients;
 use IngredientsQuery;
 use SamMcDonald\Json\Json;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
-class IngredientController
+class IngredientController implements Provider
 {
     public int $size = 20;
     public function renderPage()
@@ -50,28 +51,26 @@ class IngredientController
         $ingredient->description = $ingredientDB->getDescription();
         echo Json::serialize($ingredient);
     }
-    public function post($data)
+    public function post($entity)
     {
-        /** @var Ingredient $ingredientData */
-        $ingredientData = Json::deserialize($data, Ingredient::class);
         $ingredients = new Ingredients();
-        $ingredients->setName($ingredientData->name);
-        $ingredients->setDescription($ingredientData->description);
-        $ingredients->save();
+        $ingredients->setName($entity->name);
+        $ingredients->setDescription($entity->description);
+        $id = $ingredients->save();
         $ingredient = new Ingredient();
+        $ingredient->id = $id;
         $ingredient->name = $ingredients->getName();
         $ingredient->description = $ingredients->getDescription();
         echo Json::serialize($ingredient);
     }
-    public function update($data)
+    public function update($entity)
     {
-        /** @var Ingredient $ingredientData */
-        $ingredientData = Json::deserialize($data, Ingredient::class);
         $query = new IngredientsQuery();
-        $selectedIngredient = $query->findPk($ingredientData->id);
-        if ($selectedIngredient->getId() === $ingredientData->id) {
-            $selectedIngredient->setName($ingredientData->name);
-            $selectedIngredient->setDescription($ingredientData->description);
+        $selectedIngredient = $query->findPk($entity->id);
+        if ($selectedIngredient->getId() === $entity->id) {
+            $selectedIngredient->setName($entity->name);
+            $selectedIngredient->setDescription($entity->description);
+            $selectedIngredient->save();
         }
         $ingredient = new Ingredient();
         $ingredient->id = $selectedIngredient->getId();
@@ -82,5 +81,10 @@ class IngredientController
     public function delete($id)
     {
         IngredientsQuery::create()->filterById($id)->delete();
+    }
+
+    public function getAssociatedEntity()
+    {
+        return Ingredient::class;
     }
 }
