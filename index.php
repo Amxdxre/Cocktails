@@ -39,6 +39,9 @@ switch ($routeInfo[0]) {
         if ($handler[0] === API::class) {
             $APIcontroller = $vars['controller'];
             $rawBody = file_get_contents('php://input');
+            if (!empty($vars['id'])) {
+                $rawBody = $vars['id'];
+            }
             call_user_func_array([$controller, $method], [$APIcontroller, $rawBody]);
             break;
         }
