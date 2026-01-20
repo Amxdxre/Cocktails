@@ -9,9 +9,10 @@ include "vendor/autoload.php";
 include "generated-conf/config.php";
 
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $route) {
-    $route->addRoute('GET', '/cocktails', [CocktailController::class, 'renderPage']);
-    $route->addRoute('GET', '/ingredients', [IngredientController::class, 'renderPage']);
-    $route->addRoute('GET', '/api/{controller}', [API::class, 'processGet']);
+    $route->addRoute('GET', '/cocktails', [Cocktails::class, 'renderPage']);
+    $route->addRoute('GET', '/ingredients', [Ingredients::class, 'renderPage']);
+    $route->addRoute('GET', '/admin', [Admin::class, 'renderAdminPanel']);
+    $route->addRoute('GET', '/api/{controller}/{id}', [API::class, 'processGet']);
     $route->addRoute('POST', '/api/{controller}', [API::class, 'processPost']);
     $route->addRoute('PATCH', '/api/{controller}', [API::class, 'processUpdate']);
     $route->addRoute('DELETE', '/api/{controller}', [API::class, 'processDelete']);
