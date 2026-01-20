@@ -7,11 +7,13 @@ $serviceContainer->initDatabaseMapFromDumps(array (
     array (
       'cocktails' => '\\Map\\CocktailsTableMap',
       'ingredients' => '\\Map\\IngredientsTableMap',
+      'recipe' => '\\Map\\RecipeTableMap',
     ),
     'tablesByPhpName' => 
     array (
       '\\Cocktails' => '\\Map\\CocktailsTableMap',
       '\\Ingredients' => '\\Map\\IngredientsTableMap',
+      '\\Recipe' => '\\Map\\RecipeTableMap',
     ),
   ),
 ));

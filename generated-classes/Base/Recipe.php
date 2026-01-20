@@ -4,18 +4,17 @@ namespace Base;
 
 use \Cocktails as ChildCocktails;
 use \CocktailsQuery as ChildCocktailsQuery;
-use \Recipe as ChildRecipe;
+use \Ingredients as ChildIngredients;
+use \IngredientsQuery as ChildIngredientsQuery;
 use \RecipeQuery as ChildRecipeQuery;
 use \Exception;
 use \PDO;
-use Map\CocktailsTableMap;
 use Map\RecipeTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Collection\Collection;
-use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Exception\LogicException;
@@ -24,20 +23,20 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 
 /**
- * Base class that represents a row from the 'cocktails' table.
+ * Base class that represents a row from the 'recipe' table.
  *
  *
  *
  * @package    propel.generator..Base
  */
-abstract class Cocktails implements ActiveRecordInterface
+abstract class Recipe implements ActiveRecordInterface
 {
     /**
      * TableMap class name
      *
      * @var string
      */
-    public const TABLE_MAP = '\\Map\\CocktailsTableMap';
+    public const TABLE_MAP = '\\Map\\RecipeTableMap';
 
 
     /**
@@ -67,32 +66,49 @@ abstract class Cocktails implements ActiveRecordInterface
     protected $virtualColumns = [];
 
     /**
-     * The value for the id field.
+     * The value for the cocktail_id field.
      *
      * @var        int
      */
-    protected $id;
+    protected $cocktail_id;
 
     /**
-     * The value for the name field.
+     * The value for the ingredient_id field.
+     *
+     * @var        int
+     */
+    protected $ingredient_id;
+
+    /**
+     * The value for the amount field.
+     *
+     * @var        int
+     */
+    protected $amount;
+
+    /**
+     * The value for the measure field.
      *
      * @var        string
      */
-    protected $name;
+    protected $measure;
 
     /**
-     * The value for the description field.
+     * The value for the variation field.
      *
-     * @var        string
+     * @var        int
      */
-    protected $description;
+    protected $variation;
 
     /**
-     * @var        ObjectCollection|ChildRecipe[] Collection to store aggregation of ChildRecipe objects.
-     * @phpstan-var ObjectCollection&\Traversable<ChildRecipe> Collection to store aggregation of ChildRecipe objects.
+     * @var        ChildCocktails
      */
-    protected $collRecipes;
-    protected $collRecipesPartial;
+    protected $aCocktails;
+
+    /**
+     * @var        ChildIngredients
+     */
+    protected $aIngredients;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -103,14 +119,7 @@ abstract class Cocktails implements ActiveRecordInterface
     protected $alreadyInSave = false;
 
     /**
-     * An array of objects scheduled for deletion.
-     * @var ObjectCollection|ChildRecipe[]
-     * @phpstan-var ObjectCollection&\Traversable<ChildRecipe>
-     */
-    protected $recipesScheduledForDeletion = null;
-
-    /**
-     * Initializes internal state of Base\Cocktails object.
+     * Initializes internal state of Base\Recipe object.
      */
     public function __construct()
     {
@@ -203,9 +212,9 @@ abstract class Cocktails implements ActiveRecordInterface
     }
 
     /**
-     * Compares this with another <code>Cocktails</code> instance.  If
-     * <code>obj</code> is an instance of <code>Cocktails</code>, delegates to
-     * <code>equals(Cocktails)</code>.  Otherwise, returns <code>false</code>.
+     * Compares this with another <code>Recipe</code> instance.  If
+     * <code>obj</code> is an instance of <code>Recipe</code>, delegates to
+     * <code>equals(Recipe)</code>.  Otherwise, returns <code>false</code>.
      *
      * @param mixed $obj The object to compare to.
      * @return bool Whether equal to the object specified.
@@ -336,90 +345,158 @@ abstract class Cocktails implements ActiveRecordInterface
     }
 
     /**
-     * Get the [id] column value.
+     * Get the [cocktail_id] column value.
      *
      * @return int
      */
-    public function getId()
+    public function getCocktailId()
     {
-        return $this->id;
+        return $this->cocktail_id;
     }
 
     /**
-     * Get the [name] column value.
+     * Get the [ingredient_id] column value.
+     *
+     * @return int
+     */
+    public function getIngredientId()
+    {
+        return $this->ingredient_id;
+    }
+
+    /**
+     * Get the [amount] column value.
+     *
+     * @return int
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    /**
+     * Get the [measure] column value.
      *
      * @return string
      */
-    public function getName()
+    public function getMeasure()
     {
-        return $this->name;
+        return $this->measure;
     }
 
     /**
-     * Get the [description] column value.
+     * Get the [variation] column value.
      *
-     * @return string
+     * @return int
      */
-    public function getDescription()
+    public function getVariation()
     {
-        return $this->description;
+        return $this->variation;
     }
 
     /**
-     * Set the value of [id] column.
+     * Set the value of [cocktail_id] column.
      *
      * @param int $v New value
      * @return $this The current object (for fluent API support)
      */
-    public function setId($v)
+    public function setCocktailId($v)
     {
         if ($v !== null) {
             $v = (int) $v;
         }
 
-        if ($this->id !== $v) {
-            $this->id = $v;
-            $this->modifiedColumns[CocktailsTableMap::COL_ID] = true;
+        if ($this->cocktail_id !== $v) {
+            $this->cocktail_id = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_COCKTAIL_ID] = true;
+        }
+
+        if ($this->aCocktails !== null && $this->aCocktails->getId() !== $v) {
+            $this->aCocktails = null;
         }
 
         return $this;
     }
 
     /**
-     * Set the value of [name] column.
+     * Set the value of [ingredient_id] column.
      *
-     * @param string $v New value
+     * @param int $v New value
      * @return $this The current object (for fluent API support)
      */
-    public function setName($v)
+    public function setIngredientId($v)
     {
         if ($v !== null) {
-            $v = (string) $v;
+            $v = (int) $v;
         }
 
-        if ($this->name !== $v) {
-            $this->name = $v;
-            $this->modifiedColumns[CocktailsTableMap::COL_NAME] = true;
+        if ($this->ingredient_id !== $v) {
+            $this->ingredient_id = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_INGREDIENT_ID] = true;
+        }
+
+        if ($this->aIngredients !== null && $this->aIngredients->getId() !== $v) {
+            $this->aIngredients = null;
         }
 
         return $this;
     }
 
     /**
-     * Set the value of [description] column.
+     * Set the value of [amount] column.
+     *
+     * @param int $v New value
+     * @return $this The current object (for fluent API support)
+     */
+    public function setAmount($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->amount !== $v) {
+            $this->amount = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_AMOUNT] = true;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of [measure] column.
      *
      * @param string $v New value
      * @return $this The current object (for fluent API support)
      */
-    public function setDescription($v)
+    public function setMeasure($v)
     {
         if ($v !== null) {
             $v = (string) $v;
         }
 
-        if ($this->description !== $v) {
-            $this->description = $v;
-            $this->modifiedColumns[CocktailsTableMap::COL_DESCRIPTION] = true;
+        if ($this->measure !== $v) {
+            $this->measure = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_MEASURE] = true;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of [variation] column.
+     *
+     * @param int $v New value
+     * @return $this The current object (for fluent API support)
+     */
+    public function setVariation($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->variation !== $v) {
+            $this->variation = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_VARIATION] = true;
         }
 
         return $this;
@@ -461,14 +538,20 @@ abstract class Cocktails implements ActiveRecordInterface
     {
         try {
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 0 + $startcol : CocktailsTableMap::translateFieldName('Id', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->id = (null !== $col) ? (int) $col : null;
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 0 + $startcol : RecipeTableMap::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->cocktail_id = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 1 + $startcol : CocktailsTableMap::translateFieldName('Name', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->name = (null !== $col) ? (string) $col : null;
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 1 + $startcol : RecipeTableMap::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->ingredient_id = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : CocktailsTableMap::translateFieldName('Description', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->description = (null !== $col) ? (string) $col : null;
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : RecipeTableMap::translateFieldName('Amount', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->amount = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : RecipeTableMap::translateFieldName('Measure', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->measure = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : RecipeTableMap::translateFieldName('Variation', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->variation = (null !== $col) ? (int) $col : null;
 
             $this->resetModified();
             $this->setNew(false);
@@ -477,10 +560,10 @@ abstract class Cocktails implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 3; // 3 = CocktailsTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 5; // 5 = RecipeTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
-            throw new PropelException(sprintf('Error populating %s object', '\\Cocktails'), 0, $e);
+            throw new PropelException(sprintf('Error populating %s object', '\\Recipe'), 0, $e);
         }
     }
 
@@ -500,6 +583,12 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function ensureConsistency(): void
     {
+        if ($this->aCocktails !== null && $this->cocktail_id !== $this->aCocktails->getId()) {
+            $this->aCocktails = null;
+        }
+        if ($this->aIngredients !== null && $this->ingredient_id !== $this->aIngredients->getId()) {
+            $this->aIngredients = null;
+        }
     }
 
     /**
@@ -523,13 +612,13 @@ abstract class Cocktails implements ActiveRecordInterface
         }
 
         if ($con === null) {
-            $con = Propel::getServiceContainer()->getReadConnection(CocktailsTableMap::DATABASE_NAME);
+            $con = Propel::getServiceContainer()->getReadConnection(RecipeTableMap::DATABASE_NAME);
         }
 
         // We don't need to alter the object instance pool; we're just modifying this instance
         // already in the pool.
 
-        $dataFetcher = ChildCocktailsQuery::create(null, $this->buildPkeyCriteria())->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find($con);
+        $dataFetcher = ChildRecipeQuery::create(null, $this->buildPkeyCriteria())->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find($con);
         $row = $dataFetcher->fetch();
         $dataFetcher->close();
         if (!$row) {
@@ -539,8 +628,8 @@ abstract class Cocktails implements ActiveRecordInterface
 
         if ($deep) {  // also de-associate any related objects?
 
-            $this->collRecipes = null;
-
+            $this->aCocktails = null;
+            $this->aIngredients = null;
         } // if (deep)
     }
 
@@ -550,8 +639,8 @@ abstract class Cocktails implements ActiveRecordInterface
      * @param ConnectionInterface $con
      * @return void
      * @throws \Propel\Runtime\Exception\PropelException
-     * @see Cocktails::setDeleted()
-     * @see Cocktails::isDeleted()
+     * @see Recipe::setDeleted()
+     * @see Recipe::isDeleted()
      */
     public function delete(?ConnectionInterface $con = null): void
     {
@@ -560,11 +649,11 @@ abstract class Cocktails implements ActiveRecordInterface
         }
 
         if ($con === null) {
-            $con = Propel::getServiceContainer()->getWriteConnection(CocktailsTableMap::DATABASE_NAME);
+            $con = Propel::getServiceContainer()->getWriteConnection(RecipeTableMap::DATABASE_NAME);
         }
 
         $con->transaction(function () use ($con) {
-            $deleteQuery = ChildCocktailsQuery::create()
+            $deleteQuery = ChildRecipeQuery::create()
                 ->filterByPrimaryKey($this->getPrimaryKey());
             $ret = $this->preDelete($con);
             if ($ret) {
@@ -599,7 +688,7 @@ abstract class Cocktails implements ActiveRecordInterface
         }
 
         if ($con === null) {
-            $con = Propel::getServiceContainer()->getWriteConnection(CocktailsTableMap::DATABASE_NAME);
+            $con = Propel::getServiceContainer()->getWriteConnection(RecipeTableMap::DATABASE_NAME);
         }
 
         return $con->transaction(function () use ($con) {
@@ -618,7 +707,7 @@ abstract class Cocktails implements ActiveRecordInterface
                     $this->postUpdate($con);
                 }
                 $this->postSave($con);
-                CocktailsTableMap::addInstanceToPool($this);
+                RecipeTableMap::addInstanceToPool($this);
             } else {
                 $affectedRows = 0;
             }
@@ -644,6 +733,25 @@ abstract class Cocktails implements ActiveRecordInterface
         if (!$this->alreadyInSave) {
             $this->alreadyInSave = true;
 
+            // We call the save method on the following object(s) if they
+            // were passed to this object by their corresponding set
+            // method.  This object relates to these object(s) by a
+            // foreign key reference.
+
+            if ($this->aCocktails !== null) {
+                if ($this->aCocktails->isModified() || $this->aCocktails->isNew()) {
+                    $affectedRows += $this->aCocktails->save($con);
+                }
+                $this->setCocktails($this->aCocktails);
+            }
+
+            if ($this->aIngredients !== null) {
+                if ($this->aIngredients->isModified() || $this->aIngredients->isNew()) {
+                    $affectedRows += $this->aIngredients->save($con);
+                }
+                $this->setIngredients($this->aIngredients);
+            }
+
             if ($this->isNew() || $this->isModified()) {
                 // persist changes
                 if ($this->isNew()) {
@@ -653,23 +761,6 @@ abstract class Cocktails implements ActiveRecordInterface
                     $affectedRows += $this->doUpdate($con);
                 }
                 $this->resetModified();
-            }
-
-            if ($this->recipesScheduledForDeletion !== null) {
-                if (!$this->recipesScheduledForDeletion->isEmpty()) {
-                    \RecipeQuery::create()
-                        ->filterByPrimaryKeys($this->recipesScheduledForDeletion->getPrimaryKeys(false))
-                        ->delete($con);
-                    $this->recipesScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collRecipes !== null) {
-                foreach ($this->collRecipes as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
             }
 
             $this->alreadyInSave = false;
@@ -692,24 +783,26 @@ abstract class Cocktails implements ActiveRecordInterface
         $modifiedColumns = [];
         $index = 0;
 
-        $this->modifiedColumns[CocktailsTableMap::COL_ID] = true;
-        if (null !== $this->id) {
-            throw new PropelException('Cannot insert a value for auto-increment primary key (' . CocktailsTableMap::COL_ID . ')');
-        }
 
          // check the columns in natural order for more readable SQL queries
-        if ($this->isColumnModified(CocktailsTableMap::COL_ID)) {
-            $modifiedColumns[':p' . $index++]  = 'id';
+        if ($this->isColumnModified(RecipeTableMap::COL_COCKTAIL_ID)) {
+            $modifiedColumns[':p' . $index++]  = 'cocktail_id';
         }
-        if ($this->isColumnModified(CocktailsTableMap::COL_NAME)) {
-            $modifiedColumns[':p' . $index++]  = 'name';
+        if ($this->isColumnModified(RecipeTableMap::COL_INGREDIENT_ID)) {
+            $modifiedColumns[':p' . $index++]  = 'ingredient_id';
         }
-        if ($this->isColumnModified(CocktailsTableMap::COL_DESCRIPTION)) {
-            $modifiedColumns[':p' . $index++]  = 'description';
+        if ($this->isColumnModified(RecipeTableMap::COL_AMOUNT)) {
+            $modifiedColumns[':p' . $index++]  = 'amount';
+        }
+        if ($this->isColumnModified(RecipeTableMap::COL_MEASURE)) {
+            $modifiedColumns[':p' . $index++]  = 'measure';
+        }
+        if ($this->isColumnModified(RecipeTableMap::COL_VARIATION)) {
+            $modifiedColumns[':p' . $index++]  = 'variation';
         }
 
         $sql = sprintf(
-            'INSERT INTO cocktails (%s) VALUES (%s)',
+            'INSERT INTO recipe (%s) VALUES (%s)',
             implode(', ', $modifiedColumns),
             implode(', ', array_keys($modifiedColumns))
         );
@@ -718,16 +811,24 @@ abstract class Cocktails implements ActiveRecordInterface
             $stmt = $con->prepare($sql);
             foreach ($modifiedColumns as $identifier => $columnName) {
                 switch ($columnName) {
-                    case 'id':
-                        $stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+                    case 'cocktail_id':
+                        $stmt->bindValue($identifier, $this->cocktail_id, PDO::PARAM_INT);
 
                         break;
-                    case 'name':
-                        $stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
+                    case 'ingredient_id':
+                        $stmt->bindValue($identifier, $this->ingredient_id, PDO::PARAM_INT);
 
                         break;
-                    case 'description':
-                        $stmt->bindValue($identifier, $this->description, PDO::PARAM_STR);
+                    case 'amount':
+                        $stmt->bindValue($identifier, $this->amount, PDO::PARAM_INT);
+
+                        break;
+                    case 'measure':
+                        $stmt->bindValue($identifier, $this->measure, PDO::PARAM_STR);
+
+                        break;
+                    case 'variation':
+                        $stmt->bindValue($identifier, $this->variation, PDO::PARAM_INT);
 
                         break;
                 }
@@ -737,13 +838,6 @@ abstract class Cocktails implements ActiveRecordInterface
             Propel::log($e->getMessage(), Propel::LOG_ERR);
             throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), 0, $e);
         }
-
-        try {
-            $pk = $con->lastInsertId();
-        } catch (Exception $e) {
-            throw new PropelException('Unable to get autoincrement id.', 0, $e);
-        }
-        $this->setId($pk);
 
         $this->setNew(false);
     }
@@ -776,7 +870,7 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function getByName(string $name, string $type = TableMap::TYPE_PHPNAME)
     {
-        $pos = CocktailsTableMap::translateFieldName($name, $type, TableMap::TYPE_NUM);
+        $pos = RecipeTableMap::translateFieldName($name, $type, TableMap::TYPE_NUM);
         $field = $this->getByPosition($pos);
 
         return $field;
@@ -793,13 +887,19 @@ abstract class Cocktails implements ActiveRecordInterface
     {
         switch ($pos) {
             case 0:
-                return $this->getId();
+                return $this->getCocktailId();
 
             case 1:
-                return $this->getName();
+                return $this->getIngredientId();
 
             case 2:
-                return $this->getDescription();
+                return $this->getAmount();
+
+            case 3:
+                return $this->getMeasure();
+
+            case 4:
+                return $this->getVariation();
 
             default:
                 return null;
@@ -823,15 +923,17 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function toArray(string $keyType = TableMap::TYPE_PHPNAME, bool $includeLazyLoadColumns = true, array $alreadyDumpedObjects = [], bool $includeForeignObjects = false): array
     {
-        if (isset($alreadyDumpedObjects['Cocktails'][$this->hashCode()])) {
+        if (isset($alreadyDumpedObjects['Recipe'][$this->hashCode()])) {
             return ['*RECURSION*'];
         }
-        $alreadyDumpedObjects['Cocktails'][$this->hashCode()] = true;
-        $keys = CocktailsTableMap::getFieldNames($keyType);
+        $alreadyDumpedObjects['Recipe'][$this->hashCode()] = true;
+        $keys = RecipeTableMap::getFieldNames($keyType);
         $result = [
-            $keys[0] => $this->getId(),
-            $keys[1] => $this->getName(),
-            $keys[2] => $this->getDescription(),
+            $keys[0] => $this->getCocktailId(),
+            $keys[1] => $this->getIngredientId(),
+            $keys[2] => $this->getAmount(),
+            $keys[3] => $this->getMeasure(),
+            $keys[4] => $this->getVariation(),
         ];
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -839,20 +941,35 @@ abstract class Cocktails implements ActiveRecordInterface
         }
 
         if ($includeForeignObjects) {
-            if (null !== $this->collRecipes) {
+            if (null !== $this->aCocktails) {
 
                 switch ($keyType) {
                     case TableMap::TYPE_CAMELNAME:
-                        $key = 'recipes';
+                        $key = 'cocktails';
                         break;
                     case TableMap::TYPE_FIELDNAME:
-                        $key = 'recipes';
+                        $key = 'cocktails';
                         break;
                     default:
-                        $key = 'Recipes';
+                        $key = 'Cocktails';
                 }
 
-                $result[$key] = $this->collRecipes->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+                $result[$key] = $this->aCocktails->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            }
+            if (null !== $this->aIngredients) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'ingredients';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'ingredients';
+                        break;
+                    default:
+                        $key = 'Ingredients';
+                }
+
+                $result[$key] = $this->aIngredients->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
             }
         }
 
@@ -872,7 +989,7 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function setByName(string $name, $value, string $type = TableMap::TYPE_PHPNAME)
     {
-        $pos = CocktailsTableMap::translateFieldName($name, $type, TableMap::TYPE_NUM);
+        $pos = RecipeTableMap::translateFieldName($name, $type, TableMap::TYPE_NUM);
 
         $this->setByPosition($pos, $value);
 
@@ -891,13 +1008,19 @@ abstract class Cocktails implements ActiveRecordInterface
     {
         switch ($pos) {
             case 0:
-                $this->setId($value);
+                $this->setCocktailId($value);
                 break;
             case 1:
-                $this->setName($value);
+                $this->setIngredientId($value);
                 break;
             case 2:
-                $this->setDescription($value);
+                $this->setAmount($value);
+                break;
+            case 3:
+                $this->setMeasure($value);
+                break;
+            case 4:
+                $this->setVariation($value);
                 break;
         } // switch()
 
@@ -923,16 +1046,22 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function fromArray(array $arr, string $keyType = TableMap::TYPE_PHPNAME)
     {
-        $keys = CocktailsTableMap::getFieldNames($keyType);
+        $keys = RecipeTableMap::getFieldNames($keyType);
 
         if (array_key_exists($keys[0], $arr)) {
-            $this->setId($arr[$keys[0]]);
+            $this->setCocktailId($arr[$keys[0]]);
         }
         if (array_key_exists($keys[1], $arr)) {
-            $this->setName($arr[$keys[1]]);
+            $this->setIngredientId($arr[$keys[1]]);
         }
         if (array_key_exists($keys[2], $arr)) {
-            $this->setDescription($arr[$keys[2]]);
+            $this->setAmount($arr[$keys[2]]);
+        }
+        if (array_key_exists($keys[3], $arr)) {
+            $this->setMeasure($arr[$keys[3]]);
+        }
+        if (array_key_exists($keys[4], $arr)) {
+            $this->setVariation($arr[$keys[4]]);
         }
 
         return $this;
@@ -975,16 +1104,22 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function buildCriteria(): Criteria
     {
-        $criteria = new Criteria(CocktailsTableMap::DATABASE_NAME);
+        $criteria = new Criteria(RecipeTableMap::DATABASE_NAME);
 
-        if ($this->isColumnModified(CocktailsTableMap::COL_ID)) {
-            $criteria->add(CocktailsTableMap::COL_ID, $this->id);
+        if ($this->isColumnModified(RecipeTableMap::COL_COCKTAIL_ID)) {
+            $criteria->add(RecipeTableMap::COL_COCKTAIL_ID, $this->cocktail_id);
         }
-        if ($this->isColumnModified(CocktailsTableMap::COL_NAME)) {
-            $criteria->add(CocktailsTableMap::COL_NAME, $this->name);
+        if ($this->isColumnModified(RecipeTableMap::COL_INGREDIENT_ID)) {
+            $criteria->add(RecipeTableMap::COL_INGREDIENT_ID, $this->ingredient_id);
         }
-        if ($this->isColumnModified(CocktailsTableMap::COL_DESCRIPTION)) {
-            $criteria->add(CocktailsTableMap::COL_DESCRIPTION, $this->description);
+        if ($this->isColumnModified(RecipeTableMap::COL_AMOUNT)) {
+            $criteria->add(RecipeTableMap::COL_AMOUNT, $this->amount);
+        }
+        if ($this->isColumnModified(RecipeTableMap::COL_MEASURE)) {
+            $criteria->add(RecipeTableMap::COL_MEASURE, $this->measure);
+        }
+        if ($this->isColumnModified(RecipeTableMap::COL_VARIATION)) {
+            $criteria->add(RecipeTableMap::COL_VARIATION, $this->variation);
         }
 
         return $criteria;
@@ -1002,8 +1137,9 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function buildPkeyCriteria(): Criteria
     {
-        $criteria = ChildCocktailsQuery::create();
-        $criteria->add(CocktailsTableMap::COL_ID, $this->id);
+        $criteria = ChildRecipeQuery::create();
+        $criteria->add(RecipeTableMap::COL_COCKTAIL_ID, $this->cocktail_id);
+        $criteria->add(RecipeTableMap::COL_INGREDIENT_ID, $this->ingredient_id);
 
         return $criteria;
     }
@@ -1016,10 +1152,25 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function hashCode()
     {
-        $validPk = null !== $this->getId();
+        $validPk = null !== $this->getCocktailId() &&
+            null !== $this->getIngredientId();
 
-        $validPrimaryKeyFKs = 0;
+        $validPrimaryKeyFKs = 2;
         $primaryKeyFKs = [];
+
+        //relation recipe_fk_a214b6 to table cocktails
+        if ($this->aCocktails && $hash = spl_object_hash($this->aCocktails)) {
+            $primaryKeyFKs[] = $hash;
+        } else {
+            $validPrimaryKeyFKs = false;
+        }
+
+        //relation recipe_fk_a67e35 to table ingredients
+        if ($this->aIngredients && $hash = spl_object_hash($this->aIngredients)) {
+            $primaryKeyFKs[] = $hash;
+        } else {
+            $validPrimaryKeyFKs = false;
+        }
 
         if ($validPk) {
             return crc32(json_encode($this->getPrimaryKey(), JSON_UNESCAPED_UNICODE));
@@ -1031,23 +1182,29 @@ abstract class Cocktails implements ActiveRecordInterface
     }
 
     /**
-     * Returns the primary key for this object (row).
-     * @return int
+     * Returns the composite primary key for this object.
+     * The array elements will be in same order as specified in XML.
+     * @return array
      */
     public function getPrimaryKey()
     {
-        return $this->getId();
+        $pks = [];
+        $pks[0] = $this->getCocktailId();
+        $pks[1] = $this->getIngredientId();
+
+        return $pks;
     }
 
     /**
-     * Generic method to set the primary key (id column).
+     * Set the [composite] primary key.
      *
-     * @param int|null $key Primary key.
+     * @param array $keys The elements of the composite key (order must match the order in XML file).
      * @return void
      */
-    public function setPrimaryKey(?int $key = null): void
+    public function setPrimaryKey(array $keys): void
     {
-        $this->setId($key);
+        $this->setCocktailId($keys[0]);
+        $this->setIngredientId($keys[1]);
     }
 
     /**
@@ -1057,7 +1214,7 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function isPrimaryKeyNull(): bool
     {
-        return null === $this->getId();
+        return (null === $this->getCocktailId()) && (null === $this->getIngredientId());
     }
 
     /**
@@ -1066,7 +1223,7 @@ abstract class Cocktails implements ActiveRecordInterface
      * If desired, this method can also make copies of all associated (fkey referrers)
      * objects.
      *
-     * @param object $copyObj An object of \Cocktails (or compatible) type.
+     * @param object $copyObj An object of \Recipe (or compatible) type.
      * @param bool $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
      * @param bool $makeNew Whether to reset autoincrement PKs and make the object new.
      * @throws \Propel\Runtime\Exception\PropelException
@@ -1074,25 +1231,13 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function copyInto(object $copyObj, bool $deepCopy = false, bool $makeNew = true): void
     {
-        $copyObj->setName($this->getName());
-        $copyObj->setDescription($this->getDescription());
-
-        if ($deepCopy) {
-            // important: temporarily setNew(false) because this affects the behavior of
-            // the getter/setter methods for fkey referrer objects.
-            $copyObj->setNew(false);
-
-            foreach ($this->getRecipes() as $relObj) {
-                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addRecipe($relObj->copy($deepCopy));
-                }
-            }
-
-        } // if ($deepCopy)
-
+        $copyObj->setCocktailId($this->getCocktailId());
+        $copyObj->setIngredientId($this->getIngredientId());
+        $copyObj->setAmount($this->getAmount());
+        $copyObj->setMeasure($this->getMeasure());
+        $copyObj->setVariation($this->getVariation());
         if ($makeNew) {
             $copyObj->setNew(true);
-            $copyObj->setId(NULL); // this is a auto-increment column, so set to default value
         }
     }
 
@@ -1105,7 +1250,7 @@ abstract class Cocktails implements ActiveRecordInterface
      * objects.
      *
      * @param bool $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-     * @return \Cocktails Clone of current object.
+     * @return \Recipe Clone of current object.
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function copy(bool $deepCopy = false)
@@ -1118,289 +1263,106 @@ abstract class Cocktails implements ActiveRecordInterface
         return $copyObj;
     }
 
-
     /**
-     * Initializes a collection based on the name of a relation.
-     * Avoids crafting an 'init[$relationName]s' method name
-     * that wouldn't work when StandardEnglishPluralizer is used.
+     * Declares an association between this object and a ChildCocktails object.
      *
-     * @param string $relationName The name of the relation to initialize
-     * @return void
-     */
-    public function initRelation($relationName): void
-    {
-        if ('Recipe' === $relationName) {
-            $this->initRecipes();
-            return;
-        }
-    }
-
-    /**
-     * Clears out the collRecipes collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return $this
-     * @see addRecipes()
-     */
-    public function clearRecipes()
-    {
-        $this->collRecipes = null; // important to set this to NULL since that means it is uninitialized
-
-        return $this;
-    }
-
-    /**
-     * Reset is the collRecipes collection loaded partially.
-     *
-     * @return void
-     */
-    public function resetPartialRecipes($v = true): void
-    {
-        $this->collRecipesPartial = $v;
-    }
-
-    /**
-     * Initializes the collRecipes collection.
-     *
-     * By default this just sets the collRecipes collection to an empty array (like clearcollRecipes());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param bool $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initRecipes(bool $overrideExisting = true): void
-    {
-        if (null !== $this->collRecipes && !$overrideExisting) {
-            return;
-        }
-
-        $collectionClassName = RecipeTableMap::getTableMap()->getCollectionClassName();
-
-        $this->collRecipes = new $collectionClassName;
-        $this->collRecipes->setModel('\Recipe');
-    }
-
-    /**
-     * Gets an array of ChildRecipe objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this ChildCocktails is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param ConnectionInterface $con optional connection object
-     * @return ObjectCollection|ChildRecipe[] List of ChildRecipe objects
-     * @phpstan-return ObjectCollection&\Traversable<ChildRecipe> List of ChildRecipe objects
+     * @param ChildCocktails $v
+     * @return $this The current object (for fluent API support)
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function getRecipes(?Criteria $criteria = null, ?ConnectionInterface $con = null)
+    public function setCocktails(ChildCocktails $v = null)
     {
-        $partial = $this->collRecipesPartial && !$this->isNew();
-        if (null === $this->collRecipes || null !== $criteria || $partial) {
-            if ($this->isNew()) {
-                // return empty collection
-                if (null === $this->collRecipes) {
-                    $this->initRecipes();
-                } else {
-                    $collectionClassName = RecipeTableMap::getTableMap()->getCollectionClassName();
-
-                    $collRecipes = new $collectionClassName;
-                    $collRecipes->setModel('\Recipe');
-
-                    return $collRecipes;
-                }
-            } else {
-                $collRecipes = ChildRecipeQuery::create(null, $criteria)
-                    ->filterByCocktails($this)
-                    ->find($con);
-
-                if (null !== $criteria) {
-                    if (false !== $this->collRecipesPartial && count($collRecipes)) {
-                        $this->initRecipes(false);
-
-                        foreach ($collRecipes as $obj) {
-                            if (false == $this->collRecipes->contains($obj)) {
-                                $this->collRecipes->append($obj);
-                            }
-                        }
-
-                        $this->collRecipesPartial = true;
-                    }
-
-                    return $collRecipes;
-                }
-
-                if ($partial && $this->collRecipes) {
-                    foreach ($this->collRecipes as $obj) {
-                        if ($obj->isNew()) {
-                            $collRecipes[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collRecipes = $collRecipes;
-                $this->collRecipesPartial = false;
-            }
+        if ($v === null) {
+            $this->setCocktailId(NULL);
+        } else {
+            $this->setCocktailId($v->getId());
         }
 
-        return $this->collRecipes;
-    }
+        $this->aCocktails = $v;
 
-    /**
-     * Sets a collection of ChildRecipe objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param Collection $recipes A Propel collection.
-     * @param ConnectionInterface $con Optional connection object
-     * @return $this The current object (for fluent API support)
-     */
-    public function setRecipes(Collection $recipes, ?ConnectionInterface $con = null)
-    {
-        /** @var ChildRecipe[] $recipesToDelete */
-        $recipesToDelete = $this->getRecipes(new Criteria(), $con)->diff($recipes);
-
-
-        //since at least one column in the foreign key is at the same time a PK
-        //we can not just set a PK to NULL in the lines below. We have to store
-        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
-        $this->recipesScheduledForDeletion = clone $recipesToDelete;
-
-        foreach ($recipesToDelete as $recipeRemoved) {
-            $recipeRemoved->setCocktails(null);
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the ChildCocktails object, it will not be re-added.
+        if ($v !== null) {
+            $v->addRecipe($this);
         }
 
-        $this->collRecipes = null;
-        foreach ($recipes as $recipe) {
-            $this->addRecipe($recipe);
-        }
-
-        $this->collRecipes = $recipes;
-        $this->collRecipesPartial = false;
 
         return $this;
     }
 
+
     /**
-     * Returns the number of related Recipe objects.
+     * Get the associated ChildCocktails object
      *
-     * @param Criteria $criteria
-     * @param bool $distinct
-     * @param ConnectionInterface $con
-     * @return int Count of related Recipe objects.
+     * @param ConnectionInterface $con Optional Connection object.
+     * @return ChildCocktails The associated ChildCocktails object.
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function countRecipes(?Criteria $criteria = null, bool $distinct = false, ?ConnectionInterface $con = null): int
+    public function getCocktails(?ConnectionInterface $con = null)
     {
-        $partial = $this->collRecipesPartial && !$this->isNew();
-        if (null === $this->collRecipes || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collRecipes) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getRecipes());
-            }
-
-            $query = ChildRecipeQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterByCocktails($this)
-                ->count($con);
+        if ($this->aCocktails === null && ($this->cocktail_id != 0)) {
+            $this->aCocktails = ChildCocktailsQuery::create()->findPk($this->cocktail_id, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aCocktails->addRecipes($this);
+             */
         }
 
-        return count($this->collRecipes);
+        return $this->aCocktails;
     }
 
     /**
-     * Method called to associate a ChildRecipe object to this object
-     * through the ChildRecipe foreign key attribute.
+     * Declares an association between this object and a ChildIngredients object.
      *
-     * @param ChildRecipe $l ChildRecipe
+     * @param ChildIngredients $v
      * @return $this The current object (for fluent API support)
+     * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function addRecipe(ChildRecipe $l)
+    public function setIngredients(ChildIngredients $v = null)
     {
-        if ($this->collRecipes === null) {
-            $this->initRecipes();
-            $this->collRecipesPartial = true;
+        if ($v === null) {
+            $this->setIngredientId(NULL);
+        } else {
+            $this->setIngredientId($v->getId());
         }
 
-        if (!$this->collRecipes->contains($l)) {
-            $this->doAddRecipe($l);
+        $this->aIngredients = $v;
 
-            if ($this->recipesScheduledForDeletion and $this->recipesScheduledForDeletion->contains($l)) {
-                $this->recipesScheduledForDeletion->remove($this->recipesScheduledForDeletion->search($l));
-            }
+        // Add binding for other direction of this n:n relationship.
+        // If this object has already been added to the ChildIngredients object, it will not be re-added.
+        if ($v !== null) {
+            $v->addRecipe($this);
         }
 
-        return $this;
-    }
-
-    /**
-     * @param ChildRecipe $recipe The ChildRecipe object to add.
-     */
-    protected function doAddRecipe(ChildRecipe $recipe): void
-    {
-        $this->collRecipes[]= $recipe;
-        $recipe->setCocktails($this);
-    }
-
-    /**
-     * @param ChildRecipe $recipe The ChildRecipe object to remove.
-     * @return $this The current object (for fluent API support)
-     */
-    public function removeRecipe(ChildRecipe $recipe)
-    {
-        if ($this->getRecipes()->contains($recipe)) {
-            $pos = $this->collRecipes->search($recipe);
-            $this->collRecipes->remove($pos);
-            if (null === $this->recipesScheduledForDeletion) {
-                $this->recipesScheduledForDeletion = clone $this->collRecipes;
-                $this->recipesScheduledForDeletion->clear();
-            }
-            $this->recipesScheduledForDeletion[]= clone $recipe;
-            $recipe->setCocktails(null);
-        }
 
         return $this;
     }
 
 
     /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this Cocktails is new, it will return
-     * an empty collection; or if this Cocktails has previously
-     * been saved, it will retrieve related Recipes from storage.
+     * Get the associated ChildIngredients object
      *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in Cocktails.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param ConnectionInterface $con optional connection object
-     * @param string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return ObjectCollection|ChildRecipe[] List of ChildRecipe objects
-     * @phpstan-return ObjectCollection&\Traversable<ChildRecipe}> List of ChildRecipe objects
+     * @param ConnectionInterface $con Optional Connection object.
+     * @return ChildIngredients The associated ChildIngredients object.
+     * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function getRecipesJoinIngredients(?Criteria $criteria = null, ?ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    public function getIngredients(?ConnectionInterface $con = null)
     {
-        $query = ChildRecipeQuery::create(null, $criteria);
-        $query->joinWith('Ingredients', $joinBehavior);
+        if ($this->aIngredients === null && ($this->ingredient_id != 0)) {
+            $this->aIngredients = ChildIngredientsQuery::create()->findPk($this->ingredient_id, $con);
+            /* The following can be used additionally to
+                guarantee the related object contains a reference
+                to this object.  This level of coupling may, however, be
+                undesirable since it could result in an only partially populated collection
+                in the referenced object.
+                $this->aIngredients->addRecipes($this);
+             */
+        }
 
-        return $this->getRecipes($query, $con);
+        return $this->aIngredients;
     }
 
     /**
@@ -1412,9 +1374,17 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function clear()
     {
-        $this->id = null;
-        $this->name = null;
-        $this->description = null;
+        if (null !== $this->aCocktails) {
+            $this->aCocktails->removeRecipe($this);
+        }
+        if (null !== $this->aIngredients) {
+            $this->aIngredients->removeRecipe($this);
+        }
+        $this->cocktail_id = null;
+        $this->ingredient_id = null;
+        $this->amount = null;
+        $this->measure = null;
+        $this->variation = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->resetModified();
@@ -1436,14 +1406,10 @@ abstract class Cocktails implements ActiveRecordInterface
     public function clearAllReferences(bool $deep = false)
     {
         if ($deep) {
-            if ($this->collRecipes) {
-                foreach ($this->collRecipes as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
         } // if ($deep)
 
-        $this->collRecipes = null;
+        $this->aCocktails = null;
+        $this->aIngredients = null;
         return $this;
     }
 
@@ -1454,7 +1420,7 @@ abstract class Cocktails implements ActiveRecordInterface
      */
     public function __toString()
     {
-        return (string) $this->exportTo(CocktailsTableMap::DEFAULT_STRING_FORMAT);
+        return (string) $this->exportTo(RecipeTableMap::DEFAULT_STRING_FORMAT);
     }
 
     /**

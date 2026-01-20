@@ -182,6 +182,23 @@ class CocktailsTableMap extends TableMap
      */
     public function buildRelations(): void
     {
+        $this->addRelation('Recipe', '\\Recipe', RelationMap::ONE_TO_MANY, array (
+  0 =>
+  array (
+    0 => ':cocktail_id',
+    1 => ':id',
+  ),
+), 'CASCADE', null, 'Recipes', false);
+    }
+
+    /**
+     * Method to invalidate the instance pool of all tables related to cocktails     * by a foreign key with ON DELETE CASCADE
+     */
+    public static function clearRelatedInstancePool(): void
+    {
+        // Invalidate objects in related instance pools,
+        // since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+        RecipeTableMap::clearInstancePool();
     }
 
     /**

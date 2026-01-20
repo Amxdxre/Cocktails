@@ -2,15 +2,20 @@
 
 namespace Base;
 
+use \Ingredients as ChildIngredients;
 use \IngredientsQuery as ChildIngredientsQuery;
+use \Recipe as ChildRecipe;
+use \RecipeQuery as ChildRecipeQuery;
 use \Exception;
 use \PDO;
 use Map\IngredientsTableMap;
+use Map\RecipeTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Collection\Collection;
+use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Exception\LogicException;
@@ -83,12 +88,26 @@ abstract class Ingredients implements ActiveRecordInterface
     protected $description;
 
     /**
+     * @var        ObjectCollection|ChildRecipe[] Collection to store aggregation of ChildRecipe objects.
+     * @phpstan-var ObjectCollection&\Traversable<ChildRecipe> Collection to store aggregation of ChildRecipe objects.
+     */
+    protected $collRecipes;
+    protected $collRecipesPartial;
+
+    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      *
      * @var bool
      */
     protected $alreadyInSave = false;
+
+    /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildRecipe[]
+     * @phpstan-var ObjectCollection&\Traversable<ChildRecipe>
+     */
+    protected $recipesScheduledForDeletion = null;
 
     /**
      * Initializes internal state of Base\Ingredients object.
@@ -520,6 +539,8 @@ abstract class Ingredients implements ActiveRecordInterface
 
         if ($deep) {  // also de-associate any related objects?
 
+            $this->collRecipes = null;
+
         } // if (deep)
     }
 
@@ -632,6 +653,23 @@ abstract class Ingredients implements ActiveRecordInterface
                     $affectedRows += $this->doUpdate($con);
                 }
                 $this->resetModified();
+            }
+
+            if ($this->recipesScheduledForDeletion !== null) {
+                if (!$this->recipesScheduledForDeletion->isEmpty()) {
+                    \RecipeQuery::create()
+                        ->filterByPrimaryKeys($this->recipesScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->recipesScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collRecipes !== null) {
+                foreach ($this->collRecipes as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
             }
 
             $this->alreadyInSave = false;
@@ -779,10 +817,11 @@ abstract class Ingredients implements ActiveRecordInterface
      *                    Defaults to TableMap::TYPE_PHPNAME.
      * @param bool $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
      * @param array $alreadyDumpedObjects List of objects to skip to avoid recursion
+     * @param bool $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
      *
      * @return array An associative array containing the field names (as keys) and field values
      */
-    public function toArray(string $keyType = TableMap::TYPE_PHPNAME, bool $includeLazyLoadColumns = true, array $alreadyDumpedObjects = []): array
+    public function toArray(string $keyType = TableMap::TYPE_PHPNAME, bool $includeLazyLoadColumns = true, array $alreadyDumpedObjects = [], bool $includeForeignObjects = false): array
     {
         if (isset($alreadyDumpedObjects['Ingredients'][$this->hashCode()])) {
             return ['*RECURSION*'];
@@ -799,6 +838,23 @@ abstract class Ingredients implements ActiveRecordInterface
             $result[$key] = $virtualColumn;
         }
 
+        if ($includeForeignObjects) {
+            if (null !== $this->collRecipes) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'recipes';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'recipes';
+                        break;
+                    default:
+                        $key = 'Recipes';
+                }
+
+                $result[$key] = $this->collRecipes->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+        }
 
         return $result;
     }
@@ -1020,6 +1076,20 @@ abstract class Ingredients implements ActiveRecordInterface
     {
         $copyObj->setName($this->getName());
         $copyObj->setDescription($this->getDescription());
+
+        if ($deepCopy) {
+            // important: temporarily setNew(false) because this affects the behavior of
+            // the getter/setter methods for fkey referrer objects.
+            $copyObj->setNew(false);
+
+            foreach ($this->getRecipes() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addRecipe($relObj->copy($deepCopy));
+                }
+            }
+
+        } // if ($deepCopy)
+
         if ($makeNew) {
             $copyObj->setNew(true);
             $copyObj->setId(NULL); // this is a auto-increment column, so set to default value
@@ -1046,6 +1116,291 @@ abstract class Ingredients implements ActiveRecordInterface
         $this->copyInto($copyObj, $deepCopy);
 
         return $copyObj;
+    }
+
+
+    /**
+     * Initializes a collection based on the name of a relation.
+     * Avoids crafting an 'init[$relationName]s' method name
+     * that wouldn't work when StandardEnglishPluralizer is used.
+     *
+     * @param string $relationName The name of the relation to initialize
+     * @return void
+     */
+    public function initRelation($relationName): void
+    {
+        if ('Recipe' === $relationName) {
+            $this->initRecipes();
+            return;
+        }
+    }
+
+    /**
+     * Clears out the collRecipes collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return $this
+     * @see addRecipes()
+     */
+    public function clearRecipes()
+    {
+        $this->collRecipes = null; // important to set this to NULL since that means it is uninitialized
+
+        return $this;
+    }
+
+    /**
+     * Reset is the collRecipes collection loaded partially.
+     *
+     * @return void
+     */
+    public function resetPartialRecipes($v = true): void
+    {
+        $this->collRecipesPartial = $v;
+    }
+
+    /**
+     * Initializes the collRecipes collection.
+     *
+     * By default this just sets the collRecipes collection to an empty array (like clearcollRecipes());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param bool $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initRecipes(bool $overrideExisting = true): void
+    {
+        if (null !== $this->collRecipes && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = RecipeTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collRecipes = new $collectionClassName;
+        $this->collRecipes->setModel('\Recipe');
+    }
+
+    /**
+     * Gets an array of ChildRecipe objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildIngredients is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildRecipe[] List of ChildRecipe objects
+     * @phpstan-return ObjectCollection&\Traversable<ChildRecipe> List of ChildRecipe objects
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function getRecipes(?Criteria $criteria = null, ?ConnectionInterface $con = null)
+    {
+        $partial = $this->collRecipesPartial && !$this->isNew();
+        if (null === $this->collRecipes || null !== $criteria || $partial) {
+            if ($this->isNew()) {
+                // return empty collection
+                if (null === $this->collRecipes) {
+                    $this->initRecipes();
+                } else {
+                    $collectionClassName = RecipeTableMap::getTableMap()->getCollectionClassName();
+
+                    $collRecipes = new $collectionClassName;
+                    $collRecipes->setModel('\Recipe');
+
+                    return $collRecipes;
+                }
+            } else {
+                $collRecipes = ChildRecipeQuery::create(null, $criteria)
+                    ->filterByIngredients($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collRecipesPartial && count($collRecipes)) {
+                        $this->initRecipes(false);
+
+                        foreach ($collRecipes as $obj) {
+                            if (false == $this->collRecipes->contains($obj)) {
+                                $this->collRecipes->append($obj);
+                            }
+                        }
+
+                        $this->collRecipesPartial = true;
+                    }
+
+                    return $collRecipes;
+                }
+
+                if ($partial && $this->collRecipes) {
+                    foreach ($this->collRecipes as $obj) {
+                        if ($obj->isNew()) {
+                            $collRecipes[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collRecipes = $collRecipes;
+                $this->collRecipesPartial = false;
+            }
+        }
+
+        return $this->collRecipes;
+    }
+
+    /**
+     * Sets a collection of ChildRecipe objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param Collection $recipes A Propel collection.
+     * @param ConnectionInterface $con Optional connection object
+     * @return $this The current object (for fluent API support)
+     */
+    public function setRecipes(Collection $recipes, ?ConnectionInterface $con = null)
+    {
+        /** @var ChildRecipe[] $recipesToDelete */
+        $recipesToDelete = $this->getRecipes(new Criteria(), $con)->diff($recipes);
+
+
+        //since at least one column in the foreign key is at the same time a PK
+        //we can not just set a PK to NULL in the lines below. We have to store
+        //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
+        $this->recipesScheduledForDeletion = clone $recipesToDelete;
+
+        foreach ($recipesToDelete as $recipeRemoved) {
+            $recipeRemoved->setIngredients(null);
+        }
+
+        $this->collRecipes = null;
+        foreach ($recipes as $recipe) {
+            $this->addRecipe($recipe);
+        }
+
+        $this->collRecipes = $recipes;
+        $this->collRecipesPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related Recipe objects.
+     *
+     * @param Criteria $criteria
+     * @param bool $distinct
+     * @param ConnectionInterface $con
+     * @return int Count of related Recipe objects.
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function countRecipes(?Criteria $criteria = null, bool $distinct = false, ?ConnectionInterface $con = null): int
+    {
+        $partial = $this->collRecipesPartial && !$this->isNew();
+        if (null === $this->collRecipes || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collRecipes) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getRecipes());
+            }
+
+            $query = ChildRecipeQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByIngredients($this)
+                ->count($con);
+        }
+
+        return count($this->collRecipes);
+    }
+
+    /**
+     * Method called to associate a ChildRecipe object to this object
+     * through the ChildRecipe foreign key attribute.
+     *
+     * @param ChildRecipe $l ChildRecipe
+     * @return $this The current object (for fluent API support)
+     */
+    public function addRecipe(ChildRecipe $l)
+    {
+        if ($this->collRecipes === null) {
+            $this->initRecipes();
+            $this->collRecipesPartial = true;
+        }
+
+        if (!$this->collRecipes->contains($l)) {
+            $this->doAddRecipe($l);
+
+            if ($this->recipesScheduledForDeletion and $this->recipesScheduledForDeletion->contains($l)) {
+                $this->recipesScheduledForDeletion->remove($this->recipesScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildRecipe $recipe The ChildRecipe object to add.
+     */
+    protected function doAddRecipe(ChildRecipe $recipe): void
+    {
+        $this->collRecipes[]= $recipe;
+        $recipe->setIngredients($this);
+    }
+
+    /**
+     * @param ChildRecipe $recipe The ChildRecipe object to remove.
+     * @return $this The current object (for fluent API support)
+     */
+    public function removeRecipe(ChildRecipe $recipe)
+    {
+        if ($this->getRecipes()->contains($recipe)) {
+            $pos = $this->collRecipes->search($recipe);
+            $this->collRecipes->remove($pos);
+            if (null === $this->recipesScheduledForDeletion) {
+                $this->recipesScheduledForDeletion = clone $this->collRecipes;
+                $this->recipesScheduledForDeletion->clear();
+            }
+            $this->recipesScheduledForDeletion[]= clone $recipe;
+            $recipe->setIngredients(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this Ingredients is new, it will return
+     * an empty collection; or if this Ingredients has previously
+     * been saved, it will retrieve related Recipes from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in Ingredients.
+     *
+     * @param Criteria $criteria optional Criteria object to narrow the query
+     * @param ConnectionInterface $con optional connection object
+     * @param string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildRecipe[] List of ChildRecipe objects
+     * @phpstan-return ObjectCollection&\Traversable<ChildRecipe}> List of ChildRecipe objects
+     */
+    public function getRecipesJoinCocktails(?Criteria $criteria = null, ?ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildRecipeQuery::create(null, $criteria);
+        $query->joinWith('Cocktails', $joinBehavior);
+
+        return $this->getRecipes($query, $con);
     }
 
     /**
@@ -1081,8 +1436,14 @@ abstract class Ingredients implements ActiveRecordInterface
     public function clearAllReferences(bool $deep = false)
     {
         if ($deep) {
+            if ($this->collRecipes) {
+                foreach ($this->collRecipes as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
+        $this->collRecipes = null;
         return $this;
     }
 
