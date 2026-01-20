@@ -1,7 +1,7 @@
 <?php
 
 namespace Cocktails\Controller;
-use Cocktails;
+use Cocktails as CocktailsDTO;
 use Cocktails\Entities\Cocktail;
 use Cocktails\Interfaces\Provider;
 use CocktailsQuery;
@@ -9,7 +9,7 @@ use SamMcDonald\Json\Json;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
-class CocktailController implements Provider
+class Cocktails implements Provider
 {
     public int $size = 20;
 
@@ -53,7 +53,7 @@ class CocktailController implements Provider
     }
     public function post($entity)
     {
-        $cocktails = new Cocktails();
+        $cocktails = new CocktailsDTO();
         $cocktails->setName($entity->name);
         $cocktails->setDescription($entity->description);
         $id = $cocktails->save();

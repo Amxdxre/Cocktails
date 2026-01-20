@@ -4,13 +4,13 @@ namespace Cocktails\Controller;
 
 use Cocktails\Entities\Ingredient;
 use Cocktails\Interfaces\Provider;
-use Ingredients;
+use Ingredients as IngredientsDTO;
 use IngredientsQuery;
 use SamMcDonald\Json\Json;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
-class IngredientController implements Provider
+class Ingredients implements Provider
 {
     public int $size = 20;
     public function renderPage()
@@ -53,7 +53,7 @@ class IngredientController implements Provider
     }
     public function post($entity)
     {
-        $ingredients = new Ingredients();
+        $ingredients = new IngredientsDTO();
         $ingredients->setName($entity->name);
         $ingredients->setDescription($entity->description);
         $id = $ingredients->save();
