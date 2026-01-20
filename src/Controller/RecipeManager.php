@@ -2,6 +2,8 @@
 
 namespace Cocktails\Controller;
 
+use RecipeQuery;
+
 class RecipeManager
 {
     public function getRecipeByCocktailId($cocktailId)
@@ -37,6 +39,6 @@ class RecipeManager
 
     public function deleteItem($variation)
     {
-
+        RecipeQuery::create()->filterByVariation($variation)->delete();
     }
 }
