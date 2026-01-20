@@ -12,8 +12,8 @@ class API
     public function registerControllers()
     {
         $this->registredProviders = [
-            'ingredient' => IngredientController::class,
-            'cocktail' => CocktailController::class
+            'ingredient' => Ingredients::class,
+            'cocktail' => Cocktails::class
         ];
     }
 
@@ -39,10 +39,10 @@ class API
         list($entity, $provider) = $this->prepareRequestProcessing($controller, $data);
         $provider->update($entity);
     }
-    public function processDelete($controller, $id)
+    public function processDelete($controller, $data)
     {
-        $provider = $this->getProvider($controller);
-        $provider->delete($id);
+        list($entity, $provider) = $this->prepareRequestProcessing($controller, $data);
+        $provider->delete($entity);
     }
 
     /**
