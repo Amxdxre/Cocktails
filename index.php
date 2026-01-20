@@ -1,8 +1,9 @@
 <?php
 
+use Cocktails\Controller\Admin;
 use Cocktails\Controller\API;
-use Cocktails\Controller\CocktailController;
-use Cocktails\Controller\IngredientController;
+use Cocktails\Controller\Cocktails;
+use Cocktails\Controller\Ingredients;
 
 include "vendor/autoload.php";
 include "generated-conf/config.php";
