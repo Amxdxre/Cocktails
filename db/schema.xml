@@ -9,4 +9,18 @@
         <column name="name" type="varchar" size="255" required="true"/>
         <column name="description" type="longvarchar" required="true"/>
     </table>
+    <table name="recipe" phpName="Recipe">
+        <column name="cocktail_id" type="integer" required="true" primaryKey="true"/>
+        <column name="ingredient_id" type="integer" required="true" primaryKey="true"/>
+        <column name="amount" type="integer" required="true"/>
+        <column name="measure" type="varchar" size="255" required="true"/>
+        <column name="variation" type="integer" required="true"/>
+
+        <foreign-key foreignTable="cocktails" onDelete="cascade">
+            <reference local="cocktail_id" foreign="id"/>
+        </foreign-key>
+        <foreign-key foreignTable="ingredients" onDelete="cascade">
+            <reference local="ingredient_id" foreign="id"/>
+        </foreign-key>
+    </table>
 </database>
