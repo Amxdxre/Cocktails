@@ -39,7 +39,7 @@ class Ingredients implements Provider
             $ingredient->description = $item->getDescription();
             $ingredients[] = $ingredient;
         }
-        echo json_encode($ingredients);
+        return $ingredients;
     }
     public function get($id)
     {
@@ -78,9 +78,16 @@ class Ingredients implements Provider
         $ingredient->description = $selectedIngredient->getDescription();
         echo Json::serialize($ingredient);
     }
-    public function delete($id)
+    public function delete($entity)
     {
-        IngredientsQuery::create()->filterById($id)->delete();
+        $removeIngredient = IngredientsQuery::create()->filterById($entity->id)->delete();
+        if ($removeIngredient) {
+            $log = ['success' => true];
+        } else {
+            $log = ['success' => false];
+            http_response_code(404);
+        }
+        echo json_encode($log);
     }
 
     public function getAssociatedEntity()

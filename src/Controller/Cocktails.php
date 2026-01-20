@@ -1,6 +1,7 @@
 <?php
 
 namespace Cocktails\Controller;
+
 use Cocktails as CocktailsDTO;
 use Cocktails\Entities\Cocktail;
 use Cocktails\Interfaces\Provider;
@@ -28,6 +29,7 @@ class Cocktails implements Provider
         ]);
     }
 
+
     public function getList()
     {
         $cocktails = [];
@@ -41,6 +43,7 @@ class Cocktails implements Provider
         }
         return $cocktails;
     }
+
     public function get($id)
     {
         $query = new CocktailsQuery();
@@ -51,6 +54,7 @@ class Cocktails implements Provider
         $cocktail->description = $cocktailDB->getDescription();
         echo Json::serialize($cocktail);
     }
+
     public function post($entity)
     {
         $cocktails = new CocktailsDTO();
@@ -63,6 +67,7 @@ class Cocktails implements Provider
         $cocktail->description = $cocktails->getDescription();
         echo Json::serialize($cocktail);
     }
+
     public function update($entity)
     {
         $query = new CocktailsQuery();
@@ -79,14 +84,21 @@ class Cocktails implements Provider
         echo Json::serialize($cocktail);
 
     }
-    public function delete($id)
+
+    public function delete($entity)
     {
-        CocktailsQuery::create()->filterById($id)->delete();
+        $removeCocktail = CocktailsQuery::create()->filterById($entity->id)->delete();
+        if ($removeCocktail) {
+            $log = ['success' => true];
+        } else {
+            $log = ['success' => false];
+            http_response_code(404);
+        }
+        echo json_encode($log);
     }
 
     public function getAssociatedEntity()
     {
         return Cocktail::class;
     }
-
 }
