@@ -2,6 +2,7 @@
 
 namespace Cocktails\Controller;
 
+use Recipe;
 use RecipeQuery;
 
 class RecipeManager
