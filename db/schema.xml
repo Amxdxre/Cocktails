@@ -10,8 +10,9 @@
         <column name="description" type="longvarchar" required="true"/>
     </table>
     <table name="recipe" phpName="Recipe">
-        <column name="cocktail_id" type="integer" required="true" primaryKey="true"/>
-        <column name="ingredient_id" type="integer" required="true" primaryKey="true"/>
+        <column name="item_id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="cocktail_id" type="integer" required="true"/>
+        <column name="ingredient_id" type="integer" required="true"/>
         <column name="amount" type="integer" required="true"/>
         <column name="measure" type="varchar" size="255" required="true"/>
         <column name="variation" type="integer" required="true"/>

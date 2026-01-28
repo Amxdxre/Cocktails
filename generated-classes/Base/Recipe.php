@@ -80,6 +80,13 @@ abstract class Recipe implements ActiveRecordInterface
     protected $ingredient_id;
 
     /**
+     * The value for the item_id field.
+     *
+     * @var        int
+     */
+    protected $item_id;
+
+    /**
      * The value for the amount field.
      *
      * @var        int
@@ -365,6 +372,16 @@ abstract class Recipe implements ActiveRecordInterface
     }
 
     /**
+     * Get the [item_id] column value.
+     *
+     * @return int
+     */
+    public function getItemId()
+    {
+        return $this->item_id;
+    }
+
+    /**
      * Get the [amount] column value.
      *
      * @return int
@@ -437,6 +454,26 @@ abstract class Recipe implements ActiveRecordInterface
 
         if ($this->aIngredients !== null && $this->aIngredients->getId() !== $v) {
             $this->aIngredients = null;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the value of [item_id] column.
+     *
+     * @param int $v New value
+     * @return $this The current object (for fluent API support)
+     */
+    public function setItemId($v)
+    {
+        if ($v !== null) {
+            $v = (int) $v;
+        }
+
+        if ($this->item_id !== $v) {
+            $this->item_id = $v;
+            $this->modifiedColumns[RecipeTableMap::COL_ITEM_ID] = true;
         }
 
         return $this;
@@ -544,13 +581,16 @@ abstract class Recipe implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 1 + $startcol : RecipeTableMap::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)];
             $this->ingredient_id = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : RecipeTableMap::translateFieldName('Amount', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : RecipeTableMap::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->item_id = (null !== $col) ? (int) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : RecipeTableMap::translateFieldName('Amount', TableMap::TYPE_PHPNAME, $indexType)];
             $this->amount = (null !== $col) ? (int) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : RecipeTableMap::translateFieldName('Measure', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : RecipeTableMap::translateFieldName('Measure', TableMap::TYPE_PHPNAME, $indexType)];
             $this->measure = (null !== $col) ? (string) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : RecipeTableMap::translateFieldName('Variation', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : RecipeTableMap::translateFieldName('Variation', TableMap::TYPE_PHPNAME, $indexType)];
             $this->variation = (null !== $col) ? (int) $col : null;
 
             $this->resetModified();
@@ -560,7 +600,7 @@ abstract class Recipe implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 5; // 5 = RecipeTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 6; // 6 = RecipeTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\Recipe'), 0, $e);
@@ -783,6 +823,10 @@ abstract class Recipe implements ActiveRecordInterface
         $modifiedColumns = [];
         $index = 0;
 
+        $this->modifiedColumns[RecipeTableMap::COL_ITEM_ID] = true;
+        if (null !== $this->item_id) {
+            throw new PropelException('Cannot insert a value for auto-increment primary key (' . RecipeTableMap::COL_ITEM_ID . ')');
+        }
 
          // check the columns in natural order for more readable SQL queries
         if ($this->isColumnModified(RecipeTableMap::COL_COCKTAIL_ID)) {
@@ -790,6 +834,9 @@ abstract class Recipe implements ActiveRecordInterface
         }
         if ($this->isColumnModified(RecipeTableMap::COL_INGREDIENT_ID)) {
             $modifiedColumns[':p' . $index++]  = 'ingredient_id';
+        }
+        if ($this->isColumnModified(RecipeTableMap::COL_ITEM_ID)) {
+            $modifiedColumns[':p' . $index++]  = 'item_id';
         }
         if ($this->isColumnModified(RecipeTableMap::COL_AMOUNT)) {
             $modifiedColumns[':p' . $index++]  = 'amount';
@@ -819,6 +866,10 @@ abstract class Recipe implements ActiveRecordInterface
                         $stmt->bindValue($identifier, $this->ingredient_id, PDO::PARAM_INT);
 
                         break;
+                    case 'item_id':
+                        $stmt->bindValue($identifier, $this->item_id, PDO::PARAM_INT);
+
+                        break;
                     case 'amount':
                         $stmt->bindValue($identifier, $this->amount, PDO::PARAM_INT);
 
@@ -838,6 +889,13 @@ abstract class Recipe implements ActiveRecordInterface
             Propel::log($e->getMessage(), Propel::LOG_ERR);
             throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), 0, $e);
         }
+
+        try {
+            $pk = $con->lastInsertId();
+        } catch (Exception $e) {
+            throw new PropelException('Unable to get autoincrement id.', 0, $e);
+        }
+        $this->setItemId($pk);
 
         $this->setNew(false);
     }
@@ -893,12 +951,15 @@ abstract class Recipe implements ActiveRecordInterface
                 return $this->getIngredientId();
 
             case 2:
-                return $this->getAmount();
+                return $this->getItemId();
 
             case 3:
-                return $this->getMeasure();
+                return $this->getAmount();
 
             case 4:
+                return $this->getMeasure();
+
+            case 5:
                 return $this->getVariation();
 
             default:
@@ -931,9 +992,10 @@ abstract class Recipe implements ActiveRecordInterface
         $result = [
             $keys[0] => $this->getCocktailId(),
             $keys[1] => $this->getIngredientId(),
-            $keys[2] => $this->getAmount(),
-            $keys[3] => $this->getMeasure(),
-            $keys[4] => $this->getVariation(),
+            $keys[2] => $this->getItemId(),
+            $keys[3] => $this->getAmount(),
+            $keys[4] => $this->getMeasure(),
+            $keys[5] => $this->getVariation(),
         ];
         $virtualColumns = $this->virtualColumns;
         foreach ($virtualColumns as $key => $virtualColumn) {
@@ -1014,12 +1076,15 @@ abstract class Recipe implements ActiveRecordInterface
                 $this->setIngredientId($value);
                 break;
             case 2:
-                $this->setAmount($value);
+                $this->setItemId($value);
                 break;
             case 3:
-                $this->setMeasure($value);
+                $this->setAmount($value);
                 break;
             case 4:
+                $this->setMeasure($value);
+                break;
+            case 5:
                 $this->setVariation($value);
                 break;
         } // switch()
@@ -1055,13 +1120,16 @@ abstract class Recipe implements ActiveRecordInterface
             $this->setIngredientId($arr[$keys[1]]);
         }
         if (array_key_exists($keys[2], $arr)) {
-            $this->setAmount($arr[$keys[2]]);
+            $this->setItemId($arr[$keys[2]]);
         }
         if (array_key_exists($keys[3], $arr)) {
-            $this->setMeasure($arr[$keys[3]]);
+            $this->setAmount($arr[$keys[3]]);
         }
         if (array_key_exists($keys[4], $arr)) {
-            $this->setVariation($arr[$keys[4]]);
+            $this->setMeasure($arr[$keys[4]]);
+        }
+        if (array_key_exists($keys[5], $arr)) {
+            $this->setVariation($arr[$keys[5]]);
         }
 
         return $this;
@@ -1112,6 +1180,9 @@ abstract class Recipe implements ActiveRecordInterface
         if ($this->isColumnModified(RecipeTableMap::COL_INGREDIENT_ID)) {
             $criteria->add(RecipeTableMap::COL_INGREDIENT_ID, $this->ingredient_id);
         }
+        if ($this->isColumnModified(RecipeTableMap::COL_ITEM_ID)) {
+            $criteria->add(RecipeTableMap::COL_ITEM_ID, $this->item_id);
+        }
         if ($this->isColumnModified(RecipeTableMap::COL_AMOUNT)) {
             $criteria->add(RecipeTableMap::COL_AMOUNT, $this->amount);
         }
@@ -1138,8 +1209,7 @@ abstract class Recipe implements ActiveRecordInterface
     public function buildPkeyCriteria(): Criteria
     {
         $criteria = ChildRecipeQuery::create();
-        $criteria->add(RecipeTableMap::COL_COCKTAIL_ID, $this->cocktail_id);
-        $criteria->add(RecipeTableMap::COL_INGREDIENT_ID, $this->ingredient_id);
+        $criteria->add(RecipeTableMap::COL_ITEM_ID, $this->item_id);
 
         return $criteria;
     }
@@ -1152,25 +1222,10 @@ abstract class Recipe implements ActiveRecordInterface
      */
     public function hashCode()
     {
-        $validPk = null !== $this->getCocktailId() &&
-            null !== $this->getIngredientId();
+        $validPk = null !== $this->getItemId();
 
-        $validPrimaryKeyFKs = 2;
+        $validPrimaryKeyFKs = 0;
         $primaryKeyFKs = [];
-
-        //relation recipe_fk_a214b6 to table cocktails
-        if ($this->aCocktails && $hash = spl_object_hash($this->aCocktails)) {
-            $primaryKeyFKs[] = $hash;
-        } else {
-            $validPrimaryKeyFKs = false;
-        }
-
-        //relation recipe_fk_a67e35 to table ingredients
-        if ($this->aIngredients && $hash = spl_object_hash($this->aIngredients)) {
-            $primaryKeyFKs[] = $hash;
-        } else {
-            $validPrimaryKeyFKs = false;
-        }
 
         if ($validPk) {
             return crc32(json_encode($this->getPrimaryKey(), JSON_UNESCAPED_UNICODE));
@@ -1182,29 +1237,23 @@ abstract class Recipe implements ActiveRecordInterface
     }
 
     /**
-     * Returns the composite primary key for this object.
-     * The array elements will be in same order as specified in XML.
-     * @return array
+     * Returns the primary key for this object (row).
+     * @return int
      */
     public function getPrimaryKey()
     {
-        $pks = [];
-        $pks[0] = $this->getCocktailId();
-        $pks[1] = $this->getIngredientId();
-
-        return $pks;
+        return $this->getItemId();
     }
 
     /**
-     * Set the [composite] primary key.
+     * Generic method to set the primary key (item_id column).
      *
-     * @param array $keys The elements of the composite key (order must match the order in XML file).
+     * @param int|null $key Primary key.
      * @return void
      */
-    public function setPrimaryKey(array $keys): void
+    public function setPrimaryKey(?int $key = null): void
     {
-        $this->setCocktailId($keys[0]);
-        $this->setIngredientId($keys[1]);
+        $this->setItemId($key);
     }
 
     /**
@@ -1214,7 +1263,7 @@ abstract class Recipe implements ActiveRecordInterface
      */
     public function isPrimaryKeyNull(): bool
     {
-        return (null === $this->getCocktailId()) && (null === $this->getIngredientId());
+        return null === $this->getItemId();
     }
 
     /**
@@ -1238,6 +1287,7 @@ abstract class Recipe implements ActiveRecordInterface
         $copyObj->setVariation($this->getVariation());
         if ($makeNew) {
             $copyObj->setNew(true);
+            $copyObj->setItemId(NULL); // this is a auto-increment column, so set to default value
         }
     }
 
@@ -1382,6 +1432,7 @@ abstract class Recipe implements ActiveRecordInterface
         }
         $this->cocktail_id = null;
         $this->ingredient_id = null;
+        $this->item_id = null;
         $this->amount = null;
         $this->measure = null;
         $this->variation = null;

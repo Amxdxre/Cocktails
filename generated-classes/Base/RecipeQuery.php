@@ -21,12 +21,14 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildRecipeQuery orderByCocktailId($order = Criteria::ASC) Order by the cocktail_id column
  * @method     ChildRecipeQuery orderByIngredientId($order = Criteria::ASC) Order by the ingredient_id column
+ * @method     ChildRecipeQuery orderByItemId($order = Criteria::ASC) Order by the item_id column
  * @method     ChildRecipeQuery orderByAmount($order = Criteria::ASC) Order by the amount column
  * @method     ChildRecipeQuery orderByMeasure($order = Criteria::ASC) Order by the measure column
  * @method     ChildRecipeQuery orderByVariation($order = Criteria::ASC) Order by the variation column
  *
  * @method     ChildRecipeQuery groupByCocktailId() Group by the cocktail_id column
  * @method     ChildRecipeQuery groupByIngredientId() Group by the ingredient_id column
+ * @method     ChildRecipeQuery groupByItemId() Group by the item_id column
  * @method     ChildRecipeQuery groupByAmount() Group by the amount column
  * @method     ChildRecipeQuery groupByMeasure() Group by the measure column
  * @method     ChildRecipeQuery groupByVariation() Group by the variation column
@@ -66,6 +68,7 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildRecipe|null findOneByCocktailId(int $cocktail_id) Return the first ChildRecipe filtered by the cocktail_id column
  * @method     ChildRecipe|null findOneByIngredientId(int $ingredient_id) Return the first ChildRecipe filtered by the ingredient_id column
+ * @method     ChildRecipe|null findOneByItemId(int $item_id) Return the first ChildRecipe filtered by the item_id column
  * @method     ChildRecipe|null findOneByAmount(int $amount) Return the first ChildRecipe filtered by the amount column
  * @method     ChildRecipe|null findOneByMeasure(string $measure) Return the first ChildRecipe filtered by the measure column
  * @method     ChildRecipe|null findOneByVariation(int $variation) Return the first ChildRecipe filtered by the variation column
@@ -75,6 +78,7 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildRecipe requireOneByCocktailId(int $cocktail_id) Return the first ChildRecipe filtered by the cocktail_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildRecipe requireOneByIngredientId(int $ingredient_id) Return the first ChildRecipe filtered by the ingredient_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildRecipe requireOneByItemId(int $item_id) Return the first ChildRecipe filtered by the item_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildRecipe requireOneByAmount(int $amount) Return the first ChildRecipe filtered by the amount column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildRecipe requireOneByMeasure(string $measure) Return the first ChildRecipe filtered by the measure column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildRecipe requireOneByVariation(int $variation) Return the first ChildRecipe filtered by the variation column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -86,6 +90,8 @@ use Propel\Runtime\Exception\PropelException;
  * @psalm-method Collection&\Traversable<ChildRecipe> findByCocktailId(int|array<int> $cocktail_id) Return ChildRecipe objects filtered by the cocktail_id column
  * @method     ChildRecipe[]|Collection findByIngredientId(int|array<int> $ingredient_id) Return ChildRecipe objects filtered by the ingredient_id column
  * @psalm-method Collection&\Traversable<ChildRecipe> findByIngredientId(int|array<int> $ingredient_id) Return ChildRecipe objects filtered by the ingredient_id column
+ * @method     ChildRecipe[]|Collection findByItemId(int|array<int> $item_id) Return ChildRecipe objects filtered by the item_id column
+ * @psalm-method Collection&\Traversable<ChildRecipe> findByItemId(int|array<int> $item_id) Return ChildRecipe objects filtered by the item_id column
  * @method     ChildRecipe[]|Collection findByAmount(int|array<int> $amount) Return ChildRecipe objects filtered by the amount column
  * @psalm-method Collection&\Traversable<ChildRecipe> findByAmount(int|array<int> $amount) Return ChildRecipe objects filtered by the amount column
  * @method     ChildRecipe[]|Collection findByMeasure(string|array<string> $measure) Return ChildRecipe objects filtered by the measure column
@@ -142,10 +148,10 @@ abstract class RecipeQuery extends ModelCriteria
      * Go fast if the query is untouched.
      *
      * <code>
-     * $obj = $c->findPk(array(12, 34), $con);
+     * $obj  = $c->findPk(12, $con);
      * </code>
      *
-     * @param array[$cocktail_id, $ingredient_id] $key Primary key to use for the query
+     * @param mixed $key Primary key to use for the query
      * @param ConnectionInterface $con an optional connection object
      *
      * @return ChildRecipe|array|mixed the result, formatted by the current formatter
@@ -170,7 +176,7 @@ abstract class RecipeQuery extends ModelCriteria
             return $this->findPkComplex($key, $con);
         }
 
-        if ((null !== ($obj = RecipeTableMap::getInstanceFromPool(serialize([(null === $key[0] || is_scalar($key[0]) || is_callable([$key[0], '__toString']) ? (string) $key[0] : $key[0]), (null === $key[1] || is_scalar($key[1]) || is_callable([$key[1], '__toString']) ? (string) $key[1] : $key[1])]))))) {
+        if ((null !== ($obj = RecipeTableMap::getInstanceFromPool(null === $key || is_scalar($key) || is_callable([$key, '__toString']) ? (string) $key : $key)))) {
             // the object is already in the instance pool
             return $obj;
         }
@@ -191,11 +197,10 @@ abstract class RecipeQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT cocktail_id, ingredient_id, amount, measure, variation FROM recipe WHERE cocktail_id = :p0 AND ingredient_id = :p1';
+        $sql = 'SELECT cocktail_id, ingredient_id, item_id, amount, measure, variation FROM recipe WHERE item_id = :p0';
         try {
             $stmt = $con->prepare($sql);
-            $stmt->bindValue(':p0', $key[0], PDO::PARAM_INT);
-            $stmt->bindValue(':p1', $key[1], PDO::PARAM_INT);
+            $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
             $stmt->execute();
         } catch (Exception $e) {
             Propel::log($e->getMessage(), Propel::LOG_ERR);
@@ -206,7 +211,7 @@ abstract class RecipeQuery extends ModelCriteria
             /** @var ChildRecipe $obj */
             $obj = new ChildRecipe();
             $obj->hydrate($row);
-            RecipeTableMap::addInstanceToPool($obj, serialize([(null === $key[0] || is_scalar($key[0]) || is_callable([$key[0], '__toString']) ? (string) $key[0] : $key[0]), (null === $key[1] || is_scalar($key[1]) || is_callable([$key[1], '__toString']) ? (string) $key[1] : $key[1])]));
+            RecipeTableMap::addInstanceToPool($obj, null === $key || is_scalar($key) || is_callable([$key, '__toString']) ? (string) $key : $key);
         }
         $stmt->closeCursor();
 
@@ -235,7 +240,7 @@ abstract class RecipeQuery extends ModelCriteria
     /**
      * Find objects by primary key
      * <code>
-     * $objs = $c->findPks(array(array(12, 56), array(832, 123), array(123, 456)), $con);
+     * $objs = $c->findPks(array(12, 56, 832), $con);
      * </code>
      * @param array $keys Primary keys to use for the query
      * @param ConnectionInterface $con an optional connection object
@@ -265,8 +270,8 @@ abstract class RecipeQuery extends ModelCriteria
      */
     public function filterByPrimaryKey($key)
     {
-        $this->addUsingAlias(RecipeTableMap::COL_COCKTAIL_ID, $key[0], Criteria::EQUAL);
-        $this->addUsingAlias(RecipeTableMap::COL_INGREDIENT_ID, $key[1], Criteria::EQUAL);
+
+        $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $key, Criteria::EQUAL);
 
         return $this;
     }
@@ -280,17 +285,8 @@ abstract class RecipeQuery extends ModelCriteria
      */
     public function filterByPrimaryKeys($keys)
     {
-        if (empty($keys)) {
-            $this->add(null, '1<>1', Criteria::CUSTOM);
 
-            return $this;
-        }
-        foreach ($keys as $key) {
-            $cton0 = $this->getNewCriterion(RecipeTableMap::COL_COCKTAIL_ID, $key[0], Criteria::EQUAL);
-            $cton1 = $this->getNewCriterion(RecipeTableMap::COL_INGREDIENT_ID, $key[1], Criteria::EQUAL);
-            $cton0->addAnd($cton1);
-            $this->addOr($cton0);
-        }
+        $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $keys, Criteria::IN);
 
         return $this;
     }
@@ -381,6 +377,49 @@ abstract class RecipeQuery extends ModelCriteria
         }
 
         $this->addUsingAlias(RecipeTableMap::COL_INGREDIENT_ID, $ingredientId, $comparison);
+
+        return $this;
+    }
+
+    /**
+     * Filter the query on the item_id column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByItemId(1234); // WHERE item_id = 1234
+     * $query->filterByItemId(array(12, 34)); // WHERE item_id IN (12, 34)
+     * $query->filterByItemId(array('min' => 12)); // WHERE item_id > 12
+     * </code>
+     *
+     * @param mixed $itemId The value to use as filter.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this The current query, for fluid interface
+     */
+    public function filterByItemId($itemId = null, ?string $comparison = null)
+    {
+        if (is_array($itemId)) {
+            $useMinMax = false;
+            if (isset($itemId['min'])) {
+                $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $itemId['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($itemId['max'])) {
+                $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $itemId['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $itemId, $comparison);
 
         return $this;
     }
@@ -859,9 +898,7 @@ abstract class RecipeQuery extends ModelCriteria
     public function prune($recipe = null)
     {
         if ($recipe) {
-            $this->addCond('pruneCond0', $this->getAliasedColName(RecipeTableMap::COL_COCKTAIL_ID), $recipe->getCocktailId(), Criteria::NOT_EQUAL);
-            $this->addCond('pruneCond1', $this->getAliasedColName(RecipeTableMap::COL_INGREDIENT_ID), $recipe->getIngredientId(), Criteria::NOT_EQUAL);
-            $this->combine(array('pruneCond0', 'pruneCond1'), Criteria::LOGICAL_OR);
+            $this->addUsingAlias(RecipeTableMap::COL_ITEM_ID, $recipe->getItemId(), Criteria::NOT_EQUAL);
         }
 
         return $this;

@@ -63,7 +63,7 @@ class RecipeTableMap extends TableMap
     /**
      * The total number of columns
      */
-    public const NUM_COLUMNS = 5;
+    public const NUM_COLUMNS = 6;
 
     /**
      * The number of lazy-loaded columns
@@ -73,7 +73,7 @@ class RecipeTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    public const NUM_HYDRATE_COLUMNS = 5;
+    public const NUM_HYDRATE_COLUMNS = 6;
 
     /**
      * the column name for the cocktail_id field
@@ -84,6 +84,11 @@ class RecipeTableMap extends TableMap
      * the column name for the ingredient_id field
      */
     public const COL_INGREDIENT_ID = 'recipe.ingredient_id';
+
+    /**
+     * the column name for the item_id field
+     */
+    public const COL_ITEM_ID = 'recipe.item_id';
 
     /**
      * the column name for the amount field
@@ -114,11 +119,11 @@ class RecipeTableMap extends TableMap
      * @var array<string, mixed>
      */
     protected static $fieldNames = [
-        self::TYPE_PHPNAME       => ['CocktailId', 'IngredientId', 'Amount', 'Measure', 'Variation', ],
-        self::TYPE_CAMELNAME     => ['cocktailId', 'ingredientId', 'amount', 'measure', 'variation', ],
-        self::TYPE_COLNAME       => [RecipeTableMap::COL_COCKTAIL_ID, RecipeTableMap::COL_INGREDIENT_ID, RecipeTableMap::COL_AMOUNT, RecipeTableMap::COL_MEASURE, RecipeTableMap::COL_VARIATION, ],
-        self::TYPE_FIELDNAME     => ['cocktail_id', 'ingredient_id', 'amount', 'measure', 'variation', ],
-        self::TYPE_NUM           => [0, 1, 2, 3, 4, ]
+        self::TYPE_PHPNAME       => ['CocktailId', 'IngredientId', 'ItemId', 'Amount', 'Measure', 'Variation', ],
+        self::TYPE_CAMELNAME     => ['cocktailId', 'ingredientId', 'itemId', 'amount', 'measure', 'variation', ],
+        self::TYPE_COLNAME       => [RecipeTableMap::COL_COCKTAIL_ID, RecipeTableMap::COL_INGREDIENT_ID, RecipeTableMap::COL_ITEM_ID, RecipeTableMap::COL_AMOUNT, RecipeTableMap::COL_MEASURE, RecipeTableMap::COL_VARIATION, ],
+        self::TYPE_FIELDNAME     => ['cocktail_id', 'ingredient_id', 'item_id', 'amount', 'measure', 'variation', ],
+        self::TYPE_NUM           => [0, 1, 2, 3, 4, 5, ]
     ];
 
     /**
@@ -130,11 +135,11 @@ class RecipeTableMap extends TableMap
      * @var array<string, mixed>
      */
     protected static $fieldKeys = [
-        self::TYPE_PHPNAME       => ['CocktailId' => 0, 'IngredientId' => 1, 'Amount' => 2, 'Measure' => 3, 'Variation' => 4, ],
-        self::TYPE_CAMELNAME     => ['cocktailId' => 0, 'ingredientId' => 1, 'amount' => 2, 'measure' => 3, 'variation' => 4, ],
-        self::TYPE_COLNAME       => [RecipeTableMap::COL_COCKTAIL_ID => 0, RecipeTableMap::COL_INGREDIENT_ID => 1, RecipeTableMap::COL_AMOUNT => 2, RecipeTableMap::COL_MEASURE => 3, RecipeTableMap::COL_VARIATION => 4, ],
-        self::TYPE_FIELDNAME     => ['cocktail_id' => 0, 'ingredient_id' => 1, 'amount' => 2, 'measure' => 3, 'variation' => 4, ],
-        self::TYPE_NUM           => [0, 1, 2, 3, 4, ]
+        self::TYPE_PHPNAME       => ['CocktailId' => 0, 'IngredientId' => 1, 'ItemId' => 2, 'Amount' => 3, 'Measure' => 4, 'Variation' => 5, ],
+        self::TYPE_CAMELNAME     => ['cocktailId' => 0, 'ingredientId' => 1, 'itemId' => 2, 'amount' => 3, 'measure' => 4, 'variation' => 5, ],
+        self::TYPE_COLNAME       => [RecipeTableMap::COL_COCKTAIL_ID => 0, RecipeTableMap::COL_INGREDIENT_ID => 1, RecipeTableMap::COL_ITEM_ID => 2, RecipeTableMap::COL_AMOUNT => 3, RecipeTableMap::COL_MEASURE => 4, RecipeTableMap::COL_VARIATION => 5, ],
+        self::TYPE_FIELDNAME     => ['cocktail_id' => 0, 'ingredient_id' => 1, 'item_id' => 2, 'amount' => 3, 'measure' => 4, 'variation' => 5, ],
+        self::TYPE_NUM           => [0, 1, 2, 3, 4, 5, ]
     ];
 
     /**
@@ -159,6 +164,14 @@ class RecipeTableMap extends TableMap
         'COL_INGREDIENT_ID' => 'INGREDIENT_ID',
         'ingredient_id' => 'INGREDIENT_ID',
         'recipe.ingredient_id' => 'INGREDIENT_ID',
+        'ItemId' => 'ITEM_ID',
+        'Recipe.ItemId' => 'ITEM_ID',
+        'itemId' => 'ITEM_ID',
+        'recipe.itemId' => 'ITEM_ID',
+        'RecipeTableMap::COL_ITEM_ID' => 'ITEM_ID',
+        'COL_ITEM_ID' => 'ITEM_ID',
+        'item_id' => 'ITEM_ID',
+        'recipe.item_id' => 'ITEM_ID',
         'Amount' => 'AMOUNT',
         'Recipe.Amount' => 'AMOUNT',
         'amount' => 'AMOUNT',
@@ -194,10 +207,11 @@ class RecipeTableMap extends TableMap
         $this->setIdentifierQuoting(false);
         $this->setClassName('\\Recipe');
         $this->setPackage('');
-        $this->setUseIdGenerator(false);
+        $this->setUseIdGenerator(true);
         // columns
-        $this->addForeignPrimaryKey('cocktail_id', 'CocktailId', 'INTEGER' , 'cocktails', 'id', true, null, null);
-        $this->addForeignPrimaryKey('ingredient_id', 'IngredientId', 'INTEGER' , 'ingredients', 'id', true, null, null);
+        $this->addForeignKey('cocktail_id', 'CocktailId', 'INTEGER', 'cocktails', 'id', true, null, null);
+        $this->addForeignKey('ingredient_id', 'IngredientId', 'INTEGER', 'ingredients', 'id', true, null, null);
+        $this->addPrimaryKey('item_id', 'ItemId', 'INTEGER', true, null, null);
         $this->addColumn('amount', 'Amount', 'INTEGER', true, null, null);
         $this->addColumn('measure', 'Measure', 'VARCHAR', true, 255, null);
         $this->addColumn('variation', 'Variation', 'INTEGER', true, null, null);
@@ -227,63 +241,6 @@ class RecipeTableMap extends TableMap
     }
 
     /**
-     * Adds an object to the instance pool.
-     *
-     * Propel keeps cached copies of objects in an instance pool when they are retrieved
-     * from the database. In some cases you may need to explicitly add objects
-     * to the cache in order to ensure that the same objects are always returned by find*()
-     * and findPk*() calls.
-     *
-     * @param \Recipe $obj A \Recipe object.
-     * @param string|null $key Key (optional) to use for instance map (for performance boost if key was already calculated externally).
-     *
-     * @return void
-     */
-    public static function addInstanceToPool(Recipe $obj, ?string $key = null): void
-    {
-        if (Propel::isInstancePoolingEnabled()) {
-            if (null === $key) {
-                $key = serialize([(null === $obj->getCocktailId() || is_scalar($obj->getCocktailId()) || is_callable([$obj->getCocktailId(), '__toString']) ? (string) $obj->getCocktailId() : $obj->getCocktailId()), (null === $obj->getIngredientId() || is_scalar($obj->getIngredientId()) || is_callable([$obj->getIngredientId(), '__toString']) ? (string) $obj->getIngredientId() : $obj->getIngredientId())]);
-            } // if key === null
-            self::$instances[$key] = $obj;
-        }
-    }
-
-    /**
-     * Removes an object from the instance pool.
-     *
-     * Propel keeps cached copies of objects in an instance pool when they are retrieved
-     * from the database.  In some cases -- especially when you override doDelete
-     * methods in your stub classes -- you may need to explicitly remove objects
-     * from the cache in order to prevent returning objects that no longer exist.
-     *
-     * @param mixed $value A \Recipe object or a primary key value.
-     *
-     * @return void
-     */
-    public static function removeInstanceFromPool($value): void
-    {
-        if (Propel::isInstancePoolingEnabled() && null !== $value) {
-            if (is_object($value) && $value instanceof \Recipe) {
-                $key = serialize([(null === $value->getCocktailId() || is_scalar($value->getCocktailId()) || is_callable([$value->getCocktailId(), '__toString']) ? (string) $value->getCocktailId() : $value->getCocktailId()), (null === $value->getIngredientId() || is_scalar($value->getIngredientId()) || is_callable([$value->getIngredientId(), '__toString']) ? (string) $value->getIngredientId() : $value->getIngredientId())]);
-
-            } elseif (is_array($value) && count($value) === 2) {
-                // assume we've been passed a primary key";
-                $key = serialize([(null === $value[0] || is_scalar($value[0]) || is_callable([$value[0], '__toString']) ? (string) $value[0] : $value[0]), (null === $value[1] || is_scalar($value[1]) || is_callable([$value[1], '__toString']) ? (string) $value[1] : $value[1])]);
-            } elseif ($value instanceof Criteria) {
-                self::$instances = [];
-
-                return;
-            } else {
-                $e = new PropelException("Invalid value passed to removeInstanceFromPool().  Expected primary key or \Recipe object; got " . (is_object($value) ? get_class($value) . ' object.' : var_export($value, true)));
-                throw $e;
-            }
-
-            unset(self::$instances[$key]);
-        }
-    }
-
-    /**
      * Retrieves a string version of the primary key from the DB resultset row that can be used to uniquely identify a row in this table.
      *
      * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
@@ -299,11 +256,11 @@ class RecipeTableMap extends TableMap
     public static function getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = TableMap::TYPE_NUM): ?string
     {
         // If the PK cannot be derived from the row, return NULL.
-        if ($row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)] === null && $row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)] === null) {
+        if ($row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)] === null) {
             return null;
         }
 
-        return serialize([(null === $row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)] || is_scalar($row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)]) || is_callable([$row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)], '__toString']) ? (string) $row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)] : $row[TableMap::TYPE_NUM == $indexType ? 0 + $offset : static::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)]), (null === $row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)] || is_scalar($row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)]) || is_callable([$row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)], '__toString']) ? (string) $row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)] : $row[TableMap::TYPE_NUM == $indexType ? 1 + $offset : static::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)])]);
+        return null === $row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)] || is_scalar($row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)]) || is_callable([$row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)], '__toString']) ? (string) $row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)] : $row[TableMap::TYPE_NUM == $indexType ? 2 + $offset : static::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)];
     }
 
     /**
@@ -320,20 +277,11 @@ class RecipeTableMap extends TableMap
      */
     public static function getPrimaryKeyFromRow(array $row, int $offset = 0, string $indexType = TableMap::TYPE_NUM)
     {
-            $pks = [];
-
-        $pks[] = (int) $row[
+        return (int) $row[
             $indexType == TableMap::TYPE_NUM
-                ? 0 + $offset
-                : self::translateFieldName('CocktailId', TableMap::TYPE_PHPNAME, $indexType)
+                ? 2 + $offset
+                : self::translateFieldName('ItemId', TableMap::TYPE_PHPNAME, $indexType)
         ];
-        $pks[] = (int) $row[
-            $indexType == TableMap::TYPE_NUM
-                ? 1 + $offset
-                : self::translateFieldName('IngredientId', TableMap::TYPE_PHPNAME, $indexType)
-        ];
-
-        return $pks;
     }
 
     /**
@@ -436,12 +384,14 @@ class RecipeTableMap extends TableMap
         if (null === $alias) {
             $criteria->addSelectColumn(RecipeTableMap::COL_COCKTAIL_ID);
             $criteria->addSelectColumn(RecipeTableMap::COL_INGREDIENT_ID);
+            $criteria->addSelectColumn(RecipeTableMap::COL_ITEM_ID);
             $criteria->addSelectColumn(RecipeTableMap::COL_AMOUNT);
             $criteria->addSelectColumn(RecipeTableMap::COL_MEASURE);
             $criteria->addSelectColumn(RecipeTableMap::COL_VARIATION);
         } else {
             $criteria->addSelectColumn($alias . '.cocktail_id');
             $criteria->addSelectColumn($alias . '.ingredient_id');
+            $criteria->addSelectColumn($alias . '.item_id');
             $criteria->addSelectColumn($alias . '.amount');
             $criteria->addSelectColumn($alias . '.measure');
             $criteria->addSelectColumn($alias . '.variation');
@@ -465,12 +415,14 @@ class RecipeTableMap extends TableMap
         if (null === $alias) {
             $criteria->removeSelectColumn(RecipeTableMap::COL_COCKTAIL_ID);
             $criteria->removeSelectColumn(RecipeTableMap::COL_INGREDIENT_ID);
+            $criteria->removeSelectColumn(RecipeTableMap::COL_ITEM_ID);
             $criteria->removeSelectColumn(RecipeTableMap::COL_AMOUNT);
             $criteria->removeSelectColumn(RecipeTableMap::COL_MEASURE);
             $criteria->removeSelectColumn(RecipeTableMap::COL_VARIATION);
         } else {
             $criteria->removeSelectColumn($alias . '.cocktail_id');
             $criteria->removeSelectColumn($alias . '.ingredient_id');
+            $criteria->removeSelectColumn($alias . '.item_id');
             $criteria->removeSelectColumn($alias . '.amount');
             $criteria->removeSelectColumn($alias . '.measure');
             $criteria->removeSelectColumn($alias . '.variation');
@@ -514,17 +466,7 @@ class RecipeTableMap extends TableMap
             $criteria = $values->buildPkeyCriteria();
         } else { // it's a primary key, or an array of pks
             $criteria = new Criteria(RecipeTableMap::DATABASE_NAME);
-            // primary key is composite; we therefore, expect
-            // the primary key passed to be an array of pkey values
-            if (count($values) == count($values, COUNT_RECURSIVE)) {
-                // array is not multi-dimensional
-                $values = [$values];
-            }
-            foreach ($values as $value) {
-                $criterion = $criteria->getNewCriterion(RecipeTableMap::COL_COCKTAIL_ID, $value[0]);
-                $criterion->addAnd($criteria->getNewCriterion(RecipeTableMap::COL_INGREDIENT_ID, $value[1]));
-                $criteria->addOr($criterion);
-            }
+            $criteria->add(RecipeTableMap::COL_ITEM_ID, (array) $values, Criteria::IN);
         }
 
         $query = RecipeQuery::create()->mergeWith($criteria);
@@ -570,6 +512,10 @@ class RecipeTableMap extends TableMap
             $criteria = clone $criteria; // rename for clarity
         } else {
             $criteria = $criteria->buildCriteria(); // build Criteria from Recipe object
+        }
+
+        if ($criteria->containsKey(RecipeTableMap::COL_ITEM_ID) && $criteria->keyContainsValue(RecipeTableMap::COL_ITEM_ID) ) {
+            throw new PropelException('Cannot insert a value for auto-increment primary key ('.RecipeTableMap::COL_ITEM_ID.')');
         }
 
 
