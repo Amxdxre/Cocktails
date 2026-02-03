@@ -173,17 +173,19 @@
 <!-- Modal Window -->
 <div class="modal-window cocktail-edit">
     <div class="modal-inner">
-        <div>
-            <label>Название</label>
-            <input class="modal-cocktail-name">
+        <div class="field-group">
+            <div>
+                <label for="cocktail-name">Название</label>
+                <input id="cocktail-name" class="modal-cocktail-name" type="text">
+            </div>
+            <div>
+                <label for="cocktail-desc">Описание</label>
+                <textarea id="cocktail-desc" class="modal-cocktail-description"></textarea>
+            </div>
         </div>
-        <div>
-            <label>Описание</label>
-            <textarea class="modal-cocktail-description"></textarea>
-        </div>
-        <div>
-            <button onclick="cocktailEditHide()">Отмена</button>
-            <button onclick="addCocktail()">Добавить</button>
+        <div class="modal-actions">
+            <button type="button" onclick="cocktailEditHide()">Отмена</button>
+            <button type="button" class="btn-confirm" onclick="addCocktail()">Добавить коктейль</button>
         </div>
     </div>
 </div>
