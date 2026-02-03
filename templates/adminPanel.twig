@@ -224,6 +224,15 @@
     function addCocktail() {
         let name = $('.modal-cocktail-name').val();
         let description = $('.modal-cocktail-description').val();
+        if (!name) {
+            alert('Пожалуйста, введите название коктейля');
+            return; // Прерываем выполнение функции
+        }
+
+        if (!description) {
+            alert('Пожалуйста, добавьте описание');
+            return;
+        }
         const data = {
             name: name,
             description: description
