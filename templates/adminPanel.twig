@@ -190,6 +190,58 @@
     </div>
 </div>
 
+<!-- Modal Window -->
+<div class="modal-window cocktail-variation-edit">
+    <div class="modal-container">
+        <div class="variation-field-group">
+            <div>
+                <label>Коктейль</label>
+                <div>
+                    <select>
+                        {% for cocktail in cocktails %}
+                            <option class="variation-cocktail-item" id="{{ cocktail.id }}">{{ cocktail.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label>Ингредиенты</label>
+                <div class="variation-ingredient-list">
+                    <div class="variation-ingredient">
+                        <select>
+                            {% for ingredient in ingredients %}
+                                <option class="variation-ingredient-item" id="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input class="variation-ingredient-amount" type="number">
+                        <select class="variation-ingredient-measure">
+                            <option>мл</option>
+                            <option>л</option>
+                            <option>г</option>
+                            <option>шт</option>
+                        </select>
+                        <button class="delete-ingredient-field" onclick="deleteIngredientField(this)">X</button>
+                    </div>
+                </div>
+                <div><button class="add-ingredient-field" onclick="addIngredientField()">+</button></div>
+            </div>
+            <div>
+                <label>Способ приготовления</label>
+                <div>
+                    <ol class="variation-method-list">
+                        <li class="variation-method-item"><input class="variation-method-text"><button onclick="deleteMethodItem(this)">X</button></li>
+                    </ol>
+                </div>
+                <button onclick="addMethodItem()">+</button>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button onclick="cocktailVariationEditHide()">Отмена</button>
+            <button onclick="addCocktailVariation()">Добавить вариацию</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
         crossorigin="anonymous"></script>
