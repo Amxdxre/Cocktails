@@ -302,6 +302,9 @@
             const response = httpApi.response;
         };
     }
+    function cocktailVariationEdit() {
+        $('.cocktail-variation-edit').show();
+    }
 
     function cocktailEditShow(entityId) {
         if (entityId !== 0) {
@@ -324,6 +327,9 @@
                 $('.cocktail-edit').show();
             };
         }
+    }
+    function cocktailVariationEditHide() {
+        $('.cocktail-variation-edit').hide();
     }
 
     function cocktailEditHide() {
