@@ -81,10 +81,10 @@ class RecipeManager
         $rawItem = Json::deserialize($recipeItem, RecipeItem::class);
         $newItem = new Recipe();
         $newItem->setCocktailId($rawItem->cocktailId);
+        $newItem->setVariation($rawItem->variation);
         $newItem->setIngredientId($rawItem->ingredientId);
         $newItem->setAmount($rawItem->amount);
         $newItem->setMeasure($rawItem->measure);
-        $newItem->setVariation($rawItem->variation);
         $newItem->save();
         $item = new RecipeItem();
         $item->itemId = $newItem->getItemId();
