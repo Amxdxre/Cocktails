@@ -365,6 +365,25 @@
             };
         }
     }
+
+    function addIngredientField() {
+        let variationField = $('.variation-ingredient').first().clone();
+        $('.variation-ingredient-list').append(variationField);
+    }
+
+    function deleteMethodItem(btn) {
+        $(btn).parent('.variation-method-item').detach();
+    }
+
+    function addMethodItem() {
+        let methodItem = $('.variation-method-item').first().clone();
+        $('.variation-method-list').append(methodItem);
+    }
+
+    function deleteIngredientField(btn) {
+        $(btn).parent('.variation-ingredient').detach();
+    }
+
     function cocktailVariationEditHide() {
         $('.cocktail-variation-edit').hide();
     }
