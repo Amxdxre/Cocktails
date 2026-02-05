@@ -45,6 +45,7 @@ switch ($routeInfo[0]) {
             call_user_func_array([$controller, $method], [$APIcontroller, $rawBody]);
             break;
         }
-        call_user_func_array([$controller, $method], []);
+        $content = file_get_contents('php://input');
+        call_user_func_array([$controller, $method], (array)$content);
         break;
 }
