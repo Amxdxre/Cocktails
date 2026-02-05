@@ -302,6 +302,43 @@
             const response = httpApi.response;
         };
     }
+
+    function addCocktailVariation() {
+        let cocktailid = $('.variation-cocktail-item').attr('id');
+        let cocktail = $('.variation-cocktail-item').val();
+        let ingredients = [];
+        let methods = [];
+        $('.variation-ingredient').each(function () {
+            ingredients.push({
+                id: $('.variation-ingredient-item').attr('id'),
+                name: $('.variation-ingredient-item').val(),
+                amount: $('.variation-ingredient-amount').val(),
+                measure: $('.variation-ingredient-measure').val()
+            });
+        })
+        $('.variation-method-text').each(function (index) {
+           methods.push({
+              step: index + 1,
+              method: $(this).val(),
+           });
+        });
+
+        let variationData = {
+            cocktailId: Number(cocktailid),
+            cocktail : cocktail,
+            ingredients: ingredients,
+            methods: methods
+        }
+        const httpApi = new XMLHttpRequest();
+        httpApi.open('POST', 'http://localhost:8081/admin/variation');
+        httpApi.responseType = 'json';
+        httpApi.send(JSON.stringify(variationData));
+        httpApi.onload = function () {
+            const response = httpApi.response;
+            // console.log(response)
+        };
+    }
+
     function cocktailVariationEdit() {
         $('.cocktail-variation-edit').show();
     }
