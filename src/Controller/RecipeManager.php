@@ -4,7 +4,9 @@ namespace Cocktails\Controller;
 
 use Cocktails\Entities\Cocktail;
 use Cocktails\Entities\CocktailVariation;
+use Cocktails\Entities\EntityItem;
 use Cocktails\Entities\RecipeItem;
+use Cocktails\Entities\Variation;
 use Recipe;
 use RecipeQuery;
 use SamMcDonald\Json\Json;
@@ -54,21 +56,24 @@ class RecipeManager
         return $variations;
     }
 
-    public function addCocktailVariation($cocktailId)
+    public function addCocktailVariation($variation)
     {
-        //Принимает id коктейля, ищет максимальный индекс вариации, делает +1 и возвращает полученное число.
-        $query = RecipeQuery::create()->filterByCocktailId($cocktailId);
-        $lastVariation = $query->select('variation')->find()->getLast();
-        $recipe = new Recipe();
-        $recipe->setCocktailId($cocktailId);
-        $recipe->setVariation($lastVariation + 1);
-        $recipe->save();
-        $item = new RecipeItem();
-        $item->itemId = $recipe->getCocktailId();
-        $item->itemId = $recipe->getVariation();
-        echo Json::serialize($item);
+        /** @var Variation $newVariation */
+        $newVariation = Json::deserialize($variation, Variation::class);
+        $lastVariation = count($this->getAllVariationsOfCocktail($newVariation->cocktailId)); // 8
+        /**
+         * @var EntityItem $ingredient
+         * */
+        foreach ($newVariation->ingredients as $ingredient) {
+            $item = new Recipe();
+            $item->setCocktailId($newVariation->cocktailId);
+            $item->setVariation($lastVariation + 1); // 9
+            $item->setIngredientId($ingredient->id);
+            $item->setAmount($ingredient->amount);
+            $item->setMeasure($ingredient->measure);
+            $item->save();
+        }
     }
-
     public function addItem($recipeItem)
     {
         // Возвращает $id записи.
