@@ -16,6 +16,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $rou
     $route->addRoute('POST', '/api/{controller}', [API::class, 'processPost']);
     $route->addRoute('PATCH', '/api/{controller}', [API::class, 'processUpdate']);
     $route->addRoute('DELETE', '/api/{controller}', [API::class, 'processDelete']);
+    $route->addRoute('POST', '/admin/variation', [\Cocktails\Controller\RecipeManager::class, 'addCocktailVariation']);
 });
 
 $httpMethod = $_SERVER['REQUEST_METHOD'];
